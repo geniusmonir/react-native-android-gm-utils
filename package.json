@@ -1,10 +1,11 @@
 {
   "name": "react-native-android-gm-utils",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "Native Functionality Integration to React Native Android Application That does not exist on React Native Directory",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
+  "types": "./lib/typescript/module/src/index.d.ts",
   "exports": {
     ".": {
       "import": {

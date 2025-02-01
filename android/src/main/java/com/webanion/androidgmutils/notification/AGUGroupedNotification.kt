@@ -1,26 +1,18 @@
 package com.webanion.androidgmutils.notification
 
 import android.text.TextUtils
+import android.util.Log
 
 class AGUGroupedNotification(mainNotification: AGUNotification, message: CharSequence) {
 
-    var title: String
-    var text: String
+    var title: String = ""
+    var text: String = ""
 
     init {
-        var formattedMessage = message.toString().trim()
+        val formattedMessage = message.toString().trim()
 
-        title = if (!mainNotification.title.isNullOrEmpty()) {
-            mainNotification.title
-        } else {
-            ""
-        }
-
-        text = if (!mainNotification.text.isNullOrEmpty()) {
-            mainNotification.text
-        } else {
-            ""
-        }
+        title = if (!TextUtils.isEmpty(mainNotification.title)) mainNotification.title else ""
+        text = if (!TextUtils.isEmpty(mainNotification.text)) mainNotification.text else ""
 
         val endIndex = formattedMessage.indexOf(":")
 
@@ -30,5 +22,8 @@ class AGUGroupedNotification(mainNotification: AGUNotification, message: CharSeq
         } else {
             text = formattedMessage
         }
+
+        // Debug logging using Log.d
+        Log.d("AGUNotificationListener", "Title: $title, Text: $text")
     }
 }

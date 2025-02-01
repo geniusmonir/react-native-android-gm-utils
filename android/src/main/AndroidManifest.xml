@@ -1,38 +1,45 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.webanion.androidgmutils">
 
     <!-- Permissions -->
-    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Use tools:node="merge" to avoid duplicate permission conflicts -->
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" tools:node="merge" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="merge" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="merge" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" tools:node="merge" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="merge" />
 
     <application
-        android:allowBackup="false"
+        android:allowBackup="ture"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning"> <!-- Suppress Google App Indexing warning -->
 
         <!-- Notification Listener Service -->
         <service
             android:name="com.webanion.androidgmutils.notification.AGUNotificationListener"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            tools:node="merge"> <!-- Merge this service if it exists in the app's manifest -->
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
 
         <!-- Background Task Service -->
-        <service android:name="com.webanion.androidgmutils.notification.AGUNotificationListenerHeadlessJsTaskService" />
+        <service
+            android:name="com.webanion.androidgmutils.notification.AGUNotificationListenerHeadlessJsTaskService"
+            tools:node="merge" /> <!-- Merge this service if it exists in the app's manifest -->
 
         <!-- Boot Receiver (Auto-start on boot) -->
         <receiver
             android:name="com.webanion.androidgmutils.notification.AGUNotificationBootupReceiver"
             android:enabled="true"
             android:exported="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
+            tools:node="merge"> <!-- Merge this receiver if it exists in the app's manifest -->
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <category android:name="android.intent.category.DEFAULT" />

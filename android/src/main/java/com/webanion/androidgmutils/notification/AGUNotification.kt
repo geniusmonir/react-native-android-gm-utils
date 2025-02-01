@@ -1,27 +1,20 @@
 package com.webanion.androidgmutils.notification
 
+import android.app.Notification
+import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
 import android.text.TextUtils
-import android.app.Notification
-import android.util.Log
-import java.util.ArrayList
-import android.content.pm.PackageManager
-import android.content.res.Resources
-import android.graphics.drawable.Drawable
-import android.graphics.Bitmap
-import java.io.ByteArrayOutputStream
 import android.util.Base64
-import android.content.Context
+import android.util.Log
+import java.io.ByteArrayOutputStream
 import java.lang.Exception
-import android.graphics.drawable.Icon
-import android.graphics.drawable.BitmapDrawable
 
-class AGUNotification(
-    context: Context,
-    sbn: StatusBarNotification,
-    listener: String
-) {
+class AGUNotification(context: Context, sbn: StatusBarNotification, listener: String) {
     companion object {
         private const val TAG = "AGUNotificationListener"
     }
@@ -34,7 +27,7 @@ class AGUNotification(
     var subText: String = ""
     var summaryText: String = ""
     var bigText: String = ""
-    var groupedMessages: ArrayList<AGUGroupedNotification> = ArrayList()
+    var groupedMessages: ArrayList<AGUGroupedNotification> = arrayListOf()
     var audioContentsURI: String = ""
     var imageBackgroundURI: String = ""
     var extraInfoText: String = ""
@@ -50,7 +43,7 @@ class AGUNotification(
             val packageName = sbn.packageName
 
             time = sbn.postTime.toString()
-            app = if (packageName.isNullOrEmpty()) "Unknown App" else packageName
+            app = if (TextUtils.isEmpty(packageName)) "Unknown App" else packageName
             title = getPropertySafely(notification, Notification.EXTRA_TITLE)
             titleBig = getPropertySafely(notification, Notification.EXTRA_TITLE_BIG)
             text = getPropertySafely(notification, Notification.EXTRA_TEXT)
@@ -74,72 +67,92 @@ class AGUNotification(
             val propCharSequence = notification.extras.getCharSequence(propKey)
             propCharSequence?.toString()?.trim() ?: ""
         } catch (e: Exception) {
-            Log.d(TAG, e.message ?: "Error")
+            Log.d(TAG, e.message ?: "Error in getPropertySafely")
             ""
         }
     }
 
     private fun getGroupedNotifications(notification: Notification): ArrayList<AGUGroupedNotification> {
-        val result = ArrayList<AGUGroupedNotification>()
-        try {
-            val lines = notification.extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+    val result = arrayListOf<AGUGroupedNotification>()
 
-            if (lines != null && lines.isNotEmpty()) {
-                for (line in lines) {
-                    if (!TextUtils.isEmpty(line)) {
-                        val groupedNotification = AGUGroupedNotification(this, line)
-                        result.add(groupedNotification)
-                    }
+    try {
+        // Try to extract grouped messages using EXTRA_TEXT_LINES
+        val lines = notification.extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+        if (lines != null) {
+            for (line in lines) {
+                if (!TextUtils.isEmpty(line)) {
+                    result.add(AGUGroupedNotification(this, line))
                 }
             }
-
-            return result
-        } catch (e: Exception) {
-            Log.d(TAG, e.message ?: "Error")
-            return result
+            Log.d(TAG, "Extracted ${result.size} grouped messages using EXTRA_TEXT_LINES")
+        } else {
+            Log.d(TAG, "No grouped messages found in EXTRA_TEXT_LINES")
         }
+
+        // If no grouped messages were found, check for other extras (e.g., bigText)
+        if (result.isEmpty()) {
+            val bigText = notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)
+            if (!TextUtils.isEmpty(bigText)) {
+                result.add(AGUGroupedNotification(this, bigText!!))
+                Log.d(TAG, "Extracted 1 grouped message using EXTRA_BIG_TEXT")
+            } else {
+                Log.d(TAG, "No grouped messages found in EXTRA_BIG_TEXT")
+            }
+        }
+    } catch (e: Exception) {
+        Log.d(TAG, "Error in getGroupedNotifications: ${e.message}")
     }
 
+    return result
+}
     private fun getNotificationIcon(context: Context, notification: Notification): String {
         return try {
-            val iconBitmap = notification.largeIcon
-            if (iconBitmap == null) {
-                Log.d(TAG, "Large icon is null")
+            val iconInstance = notification.getSmallIcon()
+            val iconDrawable: Drawable? = iconInstance.loadDrawable(context)
+            if (iconDrawable == null) {
+                Log.d(TAG, "Small icon drawable is null")
                 return ""
             }
 
-            // Convert Bitmap to Base64
+            val iconBitmap = (iconDrawable as? BitmapDrawable)?.bitmap
+            if (iconBitmap == null) {
+                Log.d(TAG, "Small icon bitmap is null")
+                return ""
+            }
+
             val outputStream = ByteArrayOutputStream()
             iconBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-            val byteArray = outputStream.toByteArray()
-            val result = Base64.encodeToString(byteArray, Base64.DEFAULT)
 
-            // Return the Base64 string with the data URI scheme
-            if (result.isEmpty()) result else "data:image/png;base64,$result"
+            val result = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+            if (TextUtils.isEmpty(result)) result else "data:image/png;base64,$result"
         } catch (e: Exception) {
-            Log.d(TAG, "Error loading large icon: ${e.message}")
+            Log.d(TAG, e.message ?: "Error in getNotificationIcon")
             ""
         }
     }
 
     private fun getNotificationLargeIcon(context: Context, notification: Notification): String {
         return try {
-            val iconBitmap = notification.largeIcon
-            if (iconBitmap == null) {
-                Log.d(TAG, "Large icon is null")
+            val iconInstance = notification.getLargeIcon()
+            val iconDrawable: Drawable? = iconInstance?.loadDrawable(context)
+            if (iconDrawable == null) {
+                Log.d(TAG, "Large icon drawable is null")
                 return ""
             }
 
-            // Convert Bitmap to Base64
+            val iconBitmap = (iconDrawable as? BitmapDrawable)?.bitmap
+            if (iconBitmap == null) {
+                Log.d(TAG, "Large icon bitmap is null")
+                return ""
+            }
+
             val outputStream = ByteArrayOutputStream()
             iconBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-            val byteArray = outputStream.toByteArray()
-            val result = Base64.encodeToString(byteArray, Base64.DEFAULT)
 
-            // Return the Base64 string with the data URI scheme
-            if (result.isEmpty()) result else "data:image/png;base64,$result"
+            val result = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+            if (TextUtils.isEmpty(result)) result else "data:image/png;base64,$result"
         } catch (e: Exception) {
-            Log.d(TAG, "Error loading large icon: ${e.message}")
+            Log.d(TAG, e.message ?: "Error in getNotificationLargeIcon")
             ""
         }
     }
@@ -148,39 +161,34 @@ class AGUNotification(
         return try {
             if (!notification.extras.containsKey(Notification.EXTRA_PICTURE)) return ""
 
-            val imageBitmap = notification.extras.get(Notification.EXTRA_PICTURE) as Bitmap
+            val imageBitmap = notification.extras.get(Notification.EXTRA_PICTURE) as? Bitmap ?: return ""
 
-            val options = BitmapFactory.Options()
-            options.inSampleSize = calculateInSampleSize(options, 100, 100)
-            options.inJustDecodeBounds = false
+            val options = BitmapFactory.Options().apply {
+                inSampleSize = calculateInSampleSize(this, 100, 100)
+                inJustDecodeBounds = false
+            }
+
             val outputStream = ByteArrayOutputStream()
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 30, outputStream)
 
             val result = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
-
-            if (result.isNotEmpty()) "data:image/png;base64,$result" else result
+            if (TextUtils.isEmpty(result)) result else "data:image/png;base64,$result"
         } catch (e: Exception) {
-            Log.d(TAG, e.message ?: "Error")
+            Log.d(TAG, e.message ?: "Error in getNotificationImage")
             ""
         }
     }
 
     fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
-        // Raw height and width of image
         val height = options.outHeight
         val width = options.outWidth
         var inSampleSize = 1
 
         if (height > reqHeight || width > reqWidth) {
-
             val halfHeight = height / 2
             val halfWidth = width / 2
 
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) >= reqHeight
-                && (halfWidth / inSampleSize) >= reqWidth
-            ) {
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
                 inSampleSize *= 2
             }
         }

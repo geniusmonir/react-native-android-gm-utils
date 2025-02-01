@@ -58,6 +58,9 @@ export interface NotificationPayload {
   image: string; // base64 encoded string (Does not works for telegram and whatsapp)
 }
 
+export const AGU_NOTIFICATION_LISTENER_HEADLESS_TASK =
+  'AGU_NOTIFICATION_LISTENER_HEADLESS_TASK';
+
 export function multiply(a: number, b: number): Promise<number> {
   return AndroidGmUtils.multiply(a, b);
 }

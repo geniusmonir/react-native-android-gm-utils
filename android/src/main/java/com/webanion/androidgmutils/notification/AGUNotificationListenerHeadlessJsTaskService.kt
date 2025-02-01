@@ -13,7 +13,7 @@ class AGUNotificationListenerHeadlessJsTaskService : HeadlessJsTaskService() {
         val extras: Bundle? = intent?.extras
         return extras?.let {
             HeadlessJsTaskConfig(
-                "AGUNotificationListenerHeadlessJs",  // Task name
+                "AGU_NOTIFICATION_LISTENER_HEADLESS_TASK",  // Task name
                 Arguments.fromBundle(extras),                // Arguments from the bundle
                 15000,                                       // Timeout for the task
                 true                                         // Allow foreground tasks
