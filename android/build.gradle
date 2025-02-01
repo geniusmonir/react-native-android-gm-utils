@@ -42,7 +42,7 @@ def supportsNamespace() {
 
 android {
   if (supportsNamespace()) {
-    namespace "com.androidgmutils"
+    namespace "com.webanion.androidgmutils"
 
     sourceSets {
       main {

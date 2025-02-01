@@ -1,4 +1,4 @@
-package com.androidgmutils
+package com.webanion.androidgmutils
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule
