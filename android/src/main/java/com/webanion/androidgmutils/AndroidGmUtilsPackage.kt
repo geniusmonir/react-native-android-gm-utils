@@ -6,6 +6,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
 import com.webanion.androidgmutils.notification.AGUNotificationListenerModule
 import com.webanion.androidgmutils.fbnotification.FBNotificationListenerModule
+import com.webanion.androidgmutils.usagestats.AGUUsageStatsModule
 
 
 class AndroidGmUtilsPackage : ReactPackage {
@@ -14,6 +15,7 @@ class AndroidGmUtilsPackage : ReactPackage {
             AndroidGmUtilsModule(reactContext),
             AGUNotificationListenerModule(reactContext),
             FBNotificationListenerModule(reactContext),
+            AGUUsageStatsModule(reactContext),
         )
   }
 
