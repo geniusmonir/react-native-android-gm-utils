@@ -58,7 +58,7 @@ class AGUNotification(context: Context, sbn: StatusBarNotification, listener: St
             image = getNotificationImage(notification)
             groupedMessages = getGroupedNotifications(notification)
         } else {
-            Log.d(TAG, "The notification received has no data")
+            // Log.d(TAG, "The notification received has no data")
         }
     }
 
@@ -84,9 +84,9 @@ class AGUNotification(context: Context, sbn: StatusBarNotification, listener: St
                     result.add(AGUGroupedNotification(this, line))
                 }
             }
-            Log.d(TAG, "Extracted ${result.size} grouped messages using EXTRA_TEXT_LINES")
+            // Log.d(TAG, "Extracted ${result.size} grouped messages using EXTRA_TEXT_LINES")
         } else {
-            Log.d(TAG, "No grouped messages found in EXTRA_TEXT_LINES")
+            // Log.d(TAG, "No grouped messages found in EXTRA_TEXT_LINES")
         }
 
         // If no grouped messages were found, check for other extras (e.g., bigText)
@@ -94,13 +94,13 @@ class AGUNotification(context: Context, sbn: StatusBarNotification, listener: St
             val bigText = notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)
             if (!TextUtils.isEmpty(bigText)) {
                 result.add(AGUGroupedNotification(this, bigText!!))
-                Log.d(TAG, "Extracted 1 grouped message using EXTRA_BIG_TEXT")
+                // Log.d(TAG, "Extracted 1 grouped message using EXTRA_BIG_TEXT")
             } else {
-                Log.d(TAG, "No grouped messages found in EXTRA_BIG_TEXT")
+                // Log.d(TAG, "No grouped messages found in EXTRA_BIG_TEXT")
             }
         }
     } catch (e: Exception) {
-        Log.d(TAG, "Error in getGroupedNotifications: ${e.message}")
+        // Log.d(TAG, "Error in getGroupedNotifications: ${e.message}")
     }
 
     return result
@@ -110,13 +110,13 @@ class AGUNotification(context: Context, sbn: StatusBarNotification, listener: St
             val iconInstance = notification.getSmallIcon()
             val iconDrawable: Drawable? = iconInstance.loadDrawable(context)
             if (iconDrawable == null) {
-                Log.d(TAG, "Small icon drawable is null")
+                // Log.d(TAG, "Small icon drawable is null")
                 return ""
             }
 
             val iconBitmap = (iconDrawable as? BitmapDrawable)?.bitmap
             if (iconBitmap == null) {
-                Log.d(TAG, "Small icon bitmap is null")
+                // Log.d(TAG, "Small icon bitmap is null")
                 return ""
             }
 
@@ -136,13 +136,13 @@ class AGUNotification(context: Context, sbn: StatusBarNotification, listener: St
             val iconInstance = notification.getLargeIcon()
             val iconDrawable: Drawable? = iconInstance?.loadDrawable(context)
             if (iconDrawable == null) {
-                Log.d(TAG, "Large icon drawable is null")
+                // Log.d(TAG, "Large icon drawable is null")
                 return ""
             }
 
             val iconBitmap = (iconDrawable as? BitmapDrawable)?.bitmap
             if (iconBitmap == null) {
-                Log.d(TAG, "Large icon bitmap is null")
+                // Log.d(TAG, "Large icon bitmap is null")
                 return ""
             }
 

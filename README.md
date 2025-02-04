@@ -8,14 +8,28 @@ Native Functionality Integration to React Native Android Application That does n
 npm install react-native-android-gm-utils
 ```
 
+```sh
+yarn add react-native-android-gm-utils
+```
+
 ## Usage
 
 ```js
-import { multiply } from 'react-native-android-gm-utils';
-
-// ...
-
-const result = await multiply(3, 7);
+import {
+  requestNotificationPermission,
+  getNotificationPermissionStatus,
+  hasAppUsageAccess,
+  requestAppUsageAccess,
+  getAppUsageStats,
+  AGU_NOTIFICATION_LISTENER_HEADLESS_TASK,
+  FB_NOTIFICATION_LISTENER_HEADLESS_TASK,
+  AGUUsageRange,
+  AGUUsageMode,
+  NotificationListenerType,
+  NotificationPermissionStatusType,
+  NotificationPayload,
+  AGUUsageStatsItem,
+} from 'react-native-android-gm-utils';
 ```
 
 Need to install react native background fetch also, com.transistorsoft.tsbackgroundfetch.BootBroadcastReceiver to start this receiver.

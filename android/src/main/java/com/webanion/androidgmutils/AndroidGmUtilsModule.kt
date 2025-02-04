@@ -12,10 +12,7 @@ class AndroidGmUtilsModule(reactContext: ReactApplicationContext) :
     return NAME
   }
 
-  @ReactMethod
-  fun multiply(a: Double, b: Double, promise: Promise) {
-    promise.resolve(a * b)
-  }
+  // @ReactMethod
 
   companion object {
     const val NAME = "AndroidGmUtils"

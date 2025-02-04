@@ -25,7 +25,7 @@ class FBNotificationListenerHeadlessTaskService : HeadlessJsTaskService() {
                         JSONObject()
                     }
 
-            Log.d(TAG, "Starting Headless Task with data: $jsonData")
+            // Log.d(TAG, "Starting Headless Task with data: $jsonData")
 
             // Convert JSONObject to WritableMap
             val writableMap = Arguments.createMap()

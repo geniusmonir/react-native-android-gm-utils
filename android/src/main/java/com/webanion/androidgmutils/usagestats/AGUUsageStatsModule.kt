@@ -8,12 +8,7 @@ import java.util.Calendar
 import android.app.AppOpsManager
 import android.content.Context
 import android.os.Process
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.WritableNativeArray
-import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.bridge.*
 
 class AGUUsageStatsModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -44,26 +39,61 @@ class AGUUsageStatsModule(reactContext: ReactApplicationContext) : ReactContextB
 
     @ReactMethod
     fun getAppUsageStats(
-        timeRange: String, // day week month year last24hours last7days last30days
-        mode: String,  // "last" or "standard"
+        timeRange: String, // 'day', 'week', 'month', 'year', 'last24hours', 'last7days', 'last30days'
+        mode: String,  // "last", "standard"
         promise: Promise
     ) {
         try {
             val context = reactApplicationContext
             val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
-            val (startTime, endTime) = getTimeRange(timeRange, mode)
-            val usageStatsList: List<UsageStats> = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY, startTime, endTime
-            )
+            // Check if usage access is granted
+            val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+            val accessGranted = appOps.checkOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                Process.myUid(),
+                context.packageName
+            ) == AppOpsManager.MODE_ALLOWED
 
-            if (usageStatsList.isNullOrEmpty()) {
-                promise.reject("NO_DATA", "No usage stats available. Ensure the permission is granted.")
+            if (!accessGranted) {
+                promise.reject("PERMISSION_DENIED", "Usage access permission not granted.")
                 return
             }
 
+            // Calculate start and end times
+            val (startTime, endTime) = getTimeRange(timeRange, mode)
+
+            // Determine the interval based on the time range
+            val interval = when (timeRange) {
+                "day", "last24hours" -> UsageStatsManager.INTERVAL_DAILY
+                "week", "last7days" -> UsageStatsManager.INTERVAL_WEEKLY
+                "month", "last30days" -> UsageStatsManager.INTERVAL_MONTHLY
+                "year" -> UsageStatsManager.INTERVAL_YEARLY
+                else -> UsageStatsManager.INTERVAL_DAILY
+            }
+
+            // Query usage stats
+            val usageStatsList: List<UsageStats> = usageStatsManager.queryUsageStats(interval, startTime, endTime)
+
+            if (usageStatsList.isNullOrEmpty()) {
+                promise.reject("NO_DATA", "No usage stats available.")
+                return
+            }
+
+            // Filter out entries with totalTimeInForeground == 0
+            val filteredStatsList = usageStatsList.filter { it.totalTimeInForeground > 0 }
+
+            if (filteredStatsList.isEmpty()) {
+                promise.reject("NO_DATA", "No usage stats with non-zero foreground time available.")
+                return
+            }
+
+            // Sort the filtered list based on lastTimeUsed in descending order (most recent first)
+            val sortedStatsList = filteredStatsList.sortedByDescending { it.lastTimeUsed }
+
+            // Format the result
             val statsArray = WritableNativeArray()
-            for (usageStats in usageStatsList) {
+            for (usageStats in sortedStatsList) {
                 val statsMap = WritableNativeMap().apply {
                     putString("packageName", usageStats.packageName)
                     putDouble("totalTimeInForeground", usageStats.totalTimeInForeground.toDouble())
@@ -79,25 +109,24 @@ class AGUUsageStatsModule(reactContext: ReactApplicationContext) : ReactContextB
     }
 
     private fun getTimeRange(timeRange: String, mode: String): Pair<Long, Long> {
-    val calendar = Calendar.getInstance()
-    val endTime = System.currentTimeMillis()
+        val calendar = Calendar.getInstance()
+        val endTime = System.currentTimeMillis()
 
-    when (timeRange) {
-        "day" -> calendar.add(Calendar.DAY_OF_YEAR, if (mode == "last") -1 else 0)
-        "week" -> calendar.set(Calendar.DAY_OF_WEEK, if (mode == "last") Calendar.MONDAY else calendar.firstDayOfWeek)
-        "month" -> calendar.set(Calendar.DAY_OF_MONTH, if (mode == "last") 1 else calendar.getActualMinimum(Calendar.DAY_OF_MONTH))
-        "year" -> calendar.set(Calendar.DAY_OF_YEAR, if (mode == "last") 1 else calendar.getActualMinimum(Calendar.DAY_OF_YEAR))
-        "last24hours" -> calendar.add(Calendar.HOUR_OF_DAY, -24)
-        "last7days" -> calendar.add(Calendar.DAY_OF_YEAR, -7)
-        "last30days" -> calendar.add(Calendar.DAY_OF_YEAR, -30)
-    }
+        when (timeRange) {
+            "day" -> calendar.add(Calendar.DAY_OF_YEAR, if (mode == "last") -1 else 0)
+            "week" -> calendar.add(Calendar.WEEK_OF_YEAR, if (mode == "last") -1 else 0)
+            "month" -> calendar.add(Calendar.MONTH, if (mode == "last") -1 else 0)
+            "year" -> calendar.add(Calendar.YEAR, if (mode == "last") -1 else 0)
+            "last24hours" -> calendar.add(Calendar.HOUR_OF_DAY, -24)
+            "last7days" -> calendar.add(Calendar.DAY_OF_YEAR, -7)
+            "last30days" -> calendar.add(Calendar.DAY_OF_YEAR, -30)
+        }
 
-    val startTime = calendar.timeInMillis
+        val startTime = calendar.timeInMillis
         return Pair(startTime, endTime)
     }
 
-
     companion object {
-      const val NAME = "AGUUsageStatsModule"
+        const val NAME = "AGUUsageStatsModule"
     }
 }

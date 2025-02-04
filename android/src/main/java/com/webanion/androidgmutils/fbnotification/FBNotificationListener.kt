@@ -16,7 +16,7 @@ class FBNotificationListener : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        Log.d(TAG, "Notification received: ${remoteMessage.data}")
+        // Log.d(TAG, "Notification received: ${remoteMessage.data}")
 
         // Pass data to Headless JS
         val jsonData = JSONObject(remoteMessage.data as Map<*, *>).toString()
@@ -29,13 +29,13 @@ class FBNotificationListener : FirebaseMessagingService() {
 
         try {
             context.startService(intent)
-            Log.d(TAG, "FBNotificationListener started successfully.")
+            // Log.d(TAG, "FBNotificationListener started successfully.")
         } catch (e: SecurityException) {
-            Log.e(TAG, "SecurityException: Failed to start service. Ensure proper permissions.", e)
+            // Log.e(TAG, "SecurityException: Failed to start service. Ensure proper permissions.", e)
         } catch (e: IllegalStateException) {
-            Log.e(TAG, "IllegalStateException: App is in background and cannot start service.", e)
+            // Log.e(TAG, "IllegalStateException: App is in background and cannot start service.", e)
         } catch (e: Exception) {
-            Log.e(TAG, "Exception: Failed to start service.", e)
+            // Log.e(TAG, "Exception: Failed to start service.", e)
         }
     }
 }

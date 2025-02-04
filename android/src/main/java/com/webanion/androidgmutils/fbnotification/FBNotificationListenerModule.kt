@@ -10,10 +10,8 @@ class FBNotificationListenerModule(reactContext: ReactApplicationContext) : Reac
         return NAME
     }
 
-    @ReactMethod
-    fun subtractNumbers(a: Double, b: Double, promise: Promise) {
-      promise.resolve(a - b)
-    }
+    // @ReactMethod
+
 
     companion object {
       const val NAME = "FBNotificationListenerModule"

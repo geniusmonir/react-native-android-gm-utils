@@ -14,11 +14,6 @@ class AGUNotificationListenerModule(reactContext: ReactApplicationContext) : Rea
     }
 
     @ReactMethod
-    fun addNumbers(a: Double, b: Double, promise: Promise) {
-      promise.resolve(a + b)
-    }
-
-    @ReactMethod
     fun getPermissionStatus(promise: Promise) {
         if (reactApplicationContext == null) {
             promise.resolve("unknown")

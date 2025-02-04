@@ -24,6 +24,6 @@ class AGUGroupedNotification(mainNotification: AGUNotification, message: CharSeq
         }
 
         // Debug logging using Log.d
-        Log.d("AGUNotificationListener", "Title: $title, Text: $text")
+        // Log.d("AGUNotificationListener", "Title: $title, Text: $text")
     }
 }

@@ -25,10 +25,10 @@ class AGUNotificationListener : NotificationListenerService() {
 
     private fun processNotification(sbn: StatusBarNotification?, action: String) {
         sbn?.notification?.let { notification ->
-            Log.d(TAG, "Notification $action event fired")
+            // Log.d(TAG, "Notification $action event fired")
 
             if (notification.extras == null) {
-                Log.d(TAG, "The notification received has no data")
+                // Log.d(TAG, "The notification received has no data")
                 return
             }
 

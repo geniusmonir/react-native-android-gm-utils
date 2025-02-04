@@ -6,6 +6,8 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
+//@ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const AndroidGmUtils = NativeModules.AndroidGmUtils
   ? NativeModules.AndroidGmUtils
   : new Proxy(
@@ -29,7 +31,8 @@ const NotificationListener = NativeModules.AGUNotificationListenerModule
       }
     );
 
-// Access FBNotificationListenerModule
+//@ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FBNotificationListener = NativeModules.FBNotificationListenerModule
   ? NativeModules.FBNotificationListenerModule
   : new Proxy(
@@ -41,7 +44,31 @@ const FBNotificationListener = NativeModules.FBNotificationListenerModule
       }
     );
 
+// Access AGUUsageStats
+const AGUUsageStats = NativeModules.AGUUsageStatsModule
+  ? NativeModules.AGUUsageStatsModule
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+export type AGUUsageRange =
+  | 'day'
+  | 'week'
+  | 'month'
+  | 'year'
+  | 'last24hours'
+  | 'last7days'
+  | 'last30days';
+
+export type AGUUsageMode = 'last' | 'standard';
+
 export type NotificationListenerType = 'posted' | 'removed';
+
 export type NotificationPermissionStatusType =
   | 'unknown'
   | 'authorized'
@@ -70,19 +97,17 @@ export interface NotificationPayload {
   image: string; // base64 encoded string (Does not works for telegram and whatsapp)
 }
 
+export interface AGUUsageStatsItem {
+  packageName: string;
+  totalTimeInForeground: number; // time in milliseconds
+  lastTimeUsed: number; // timestamp of the last time the app was used
+}
+
 export const AGU_NOTIFICATION_LISTENER_HEADLESS_TASK =
   'AGU_NOTIFICATION_LISTENER_HEADLESS_TASK';
 
 export const FB_NOTIFICATION_LISTENER_HEADLESS_TASK =
   'FB_NOTIFICATION_LISTENER_HEADLESS_TASK';
-
-export function multiply(a: number, b: number): Promise<number> {
-  return AndroidGmUtils.multiply(a, b);
-}
-
-export function addNumbers(a: number, b: number): Promise<number> {
-  return NotificationListener.addNumbers(a, b);
-}
 
 export function requestNotificationPermission(): void {
   return NotificationListener.requestPermission();
@@ -92,6 +117,17 @@ export function getNotificationPermissionStatus(): Promise<NotificationPermissio
   return NotificationListener.getPermissionStatus();
 }
 
-export function subtractNumbers(a: number, b: number): Promise<number> {
-  return FBNotificationListener.subtractNumbers(a, b);
+export function hasAppUsageAccess(): Promise<boolean> {
+  return AGUUsageStats.hasUsageAccess();
+}
+
+export function requestAppUsageAccess(): void {
+  return AGUUsageStats.requestUsageAccess();
+}
+
+export function getAppUsageStats(
+  timeRange: AGUUsageRange,
+  mode: AGUUsageMode
+): Promise<AGUUsageStatsItem[]> {
+  return AGUUsageStats.getAppUsageStats(timeRange, mode);
 }

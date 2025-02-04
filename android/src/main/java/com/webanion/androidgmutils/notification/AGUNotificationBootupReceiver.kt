@@ -13,7 +13,7 @@ class AGUNotificationBootupReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         // Safely handle the nullable intent
         val action = intent?.action
-        Log.d(TAG, "Received AGU intent: $action")
+        // Log.d(TAG, "Received AGU intent: $action")
 
         when (action) {
             Intent.ACTION_BOOT_COMPLETED,
