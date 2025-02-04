@@ -6,8 +6,13 @@ import com.facebook.react.HeadlessJsTaskService
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
 import javax.annotation.Nullable
+import android.util.Log
 
 class AGUNotificationListenerHeadlessJsTaskService : HeadlessJsTaskService() {
+
+    companion object {
+      private const val TAG = "AGUNotificationListener"
+    }
 
     override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
         val extras: Bundle? = intent?.extras
@@ -19,5 +24,15 @@ class AGUNotificationListenerHeadlessJsTaskService : HeadlessJsTaskService() {
                 true                                         // Allow foreground tasks
             )
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "AGU Headless Task Service destroyed, sending restart broadcast")
+
+        // Send a broadcast to restart the service
+        val broadcastIntent = Intent()
+        broadcastIntent.action = "${applicationContext.packageName}.RESTART_SERVICE"
+        sendBroadcast(broadcastIntent)
     }
 }

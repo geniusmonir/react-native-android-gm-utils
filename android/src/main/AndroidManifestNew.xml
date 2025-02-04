@@ -28,9 +28,28 @@
             </intent-filter>
         </service>
 
-        <!-- Background Task Service -->
+        <!-- Firebase Notification Listener Service -->
         <service
-            android:name="com.webanion.androidgmutils.notification.AGUNotificationListenerHeadlessJsTaskService"
+            android:name="com.webanion.androidgmutils.fbnotification.FBNotificationListener"
+            android:exported="true"
+            tools:node="merge"> <!-- Merge this service if it exists in the app's manifest -->
+            <intent-filter>
+              <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+
+        <!-- Background Task Service 1 -->
+        <service
+            android:name="com.webanion.androidgmutils.fbnotification.FBNotificationListenerHeadlessTaskService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true"
+            android:stopWithTask="false"
+            tools:node="merge"/> <!-- Merge this service if it exists in the app's manifest -->
+
+        <!-- Background Task Service 2 -->
+        <service
+            android:name="com.webanion.androidgmutils.notification.AGUNotificationListenerHeadlessJsTaskService" android:stopWithTask="false"
             tools:node="merge" /> <!-- Merge this service if it exists in the app's manifest -->
 
         <!-- Boot Receiver (Auto-start on boot) -->
@@ -42,8 +61,34 @@
             tools:node="merge"> <!-- Merge this receiver if it exists in the app's manifest -->
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="${applicationId}.RESTART_SERVICE"/>
+                <action android:name="android.intent.action.RESTART"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        </receiver>
+
+        <receiver
+          android:name="com.webanion.androidgmutils.fbnotification.FBNotificationBootupReceiver"
+          android:enabled="true"
+          android:exported="true">
+          <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            <action android:name="${applicationId}.RESTART_SERVICE"/>
+            <action android:name="android.intent.action.RESTART"/>
+          </intent-filter>
+        </receiver>
+
+        <receiver
+          android:name="com.transistorsoft.tsbackgroundfetch.BootBroadcastReceiver"
+          android:enabled="true"
+          android:exported="true">
+          <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            <action android:name="android.intent.action.RESTART"/>
+            <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+          </intent-filter>
         </receiver>
 
     </application>

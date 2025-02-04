@@ -29,6 +29,18 @@ const NotificationListener = NativeModules.AGUNotificationListenerModule
       }
     );
 
+// Access FBNotificationListenerModule
+const FBNotificationListener = NativeModules.FBNotificationListenerModule
+  ? NativeModules.FBNotificationListenerModule
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
 export type NotificationListenerType = 'posted' | 'removed';
 export type NotificationPermissionStatusType =
   | 'unknown'
@@ -61,6 +73,9 @@ export interface NotificationPayload {
 export const AGU_NOTIFICATION_LISTENER_HEADLESS_TASK =
   'AGU_NOTIFICATION_LISTENER_HEADLESS_TASK';
 
+export const FB_NOTIFICATION_LISTENER_HEADLESS_TASK =
+  'FB_NOTIFICATION_LISTENER_HEADLESS_TASK';
+
 export function multiply(a: number, b: number): Promise<number> {
   return AndroidGmUtils.multiply(a, b);
 }
@@ -75,4 +90,8 @@ export function requestNotificationPermission(): void {
 
 export function getNotificationPermissionStatus(): Promise<NotificationPermissionStatusType> {
   return NotificationListener.getPermissionStatus();
+}
+
+export function subtractNumbers(a: number, b: number): Promise<number> {
+  return FBNotificationListener.subtractNumbers(a, b);
 }

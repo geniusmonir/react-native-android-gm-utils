@@ -10,7 +10,6 @@ npm install react-native-android-gm-utils
 
 ## Usage
 
-
 ```js
 import { multiply } from 'react-native-android-gm-utils';
 
@@ -19,6 +18,7 @@ import { multiply } from 'react-native-android-gm-utils';
 const result = await multiply(3, 7);
 ```
 
+Need to install react native background fetch also, com.transistorsoft.tsbackgroundfetch.BootBroadcastReceiver to start this receiver.
 
 ## Contributing
 
