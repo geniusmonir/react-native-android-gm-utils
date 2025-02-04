@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -16,6 +18,18 @@ class AndroidGmUtilsModule(reactContext: ReactApplicationContext) :
 
     override fun getName(): String {
         return NAME
+    }
+
+    @ReactMethod
+    fun gracefulExitRestart(){
+        val broadcastIntent = Intent().apply {
+            action = "${reactApplicationContext.packageName}.RESTART_SERVICE"
+        }
+        reactApplicationContext.sendBroadcast(broadcastIntent)
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            android.os.Process.killProcess(android.os.Process.myPid())
+        }, 1000)
     }
 
     @ReactMethod

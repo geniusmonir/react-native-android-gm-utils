@@ -124,6 +124,10 @@ export function openBackgroundAutoStartSettings(): void {
   return AndroidGmUtils.openBackgroundAutoStartSettings();
 }
 
+export function gracefulExitRestart(): void {
+  return AndroidGmUtils.gracefulExitRestart();
+}
+
 export function requestNotificationPermission(): void {
   return NotificationListener.requestPermission();
 }
