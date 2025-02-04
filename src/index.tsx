@@ -7,7 +7,7 @@ const LINKING_ERROR =
   '- You are not using Expo Go\n';
 
 //@ts-ignore
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const AndroidGmUtils = NativeModules.AndroidGmUtils
   ? NativeModules.AndroidGmUtils
   : new Proxy(
@@ -108,6 +108,21 @@ export const AGU_NOTIFICATION_LISTENER_HEADLESS_TASK =
 
 export const FB_NOTIFICATION_LISTENER_HEADLESS_TASK =
   'FB_NOTIFICATION_LISTENER_HEADLESS_TASK';
+
+// Method to check if battery optimization is enabled
+export function isBatteryOptimizationEnabled(): Promise<boolean> {
+  return AndroidGmUtils.isBatteryOptimizationEnabled();
+}
+
+// Method to request disabling battery optimization
+export function requestDisableBatteryOptimization(): void {
+  return AndroidGmUtils.requestDisableBatteryOptimization();
+}
+
+// Method to open background auto-start settings based on manufacturer
+export function openBackgroundAutoStartSettings(): void {
+  return AndroidGmUtils.openBackgroundAutoStartSettings();
+}
 
 export function requestNotificationPermission(): void {
   return NotificationListener.requestPermission();

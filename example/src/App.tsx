@@ -1,6 +1,7 @@
 import {
   getNotificationPermissionStatus,
-  requestNotificationPermission,
+  isBatteryOptimizationEnabled,
+  requestDisableBatteryOptimization,
 } from 'react-native-android-gm-utils';
 import { View, StyleSheet, Button } from 'react-native';
 import { useEffect } from 'react';
@@ -19,7 +20,8 @@ export default function App() {
       <Button
         title="Request Permission"
         onPress={async () => {
-          await requestNotificationPermission();
+          console.log(await isBatteryOptimizationEnabled());
+          requestDisableBatteryOptimization();
         }}
       />
     </View>
