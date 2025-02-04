@@ -1,6 +1,6 @@
 {
   "name": "react-native-android-gm-utils",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Native Functionality Integration to React Native Android Application That does not exist on React Native Directory",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
