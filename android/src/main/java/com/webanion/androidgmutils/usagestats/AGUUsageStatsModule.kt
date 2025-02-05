@@ -113,10 +113,54 @@ class AGUUsageStatsModule(reactContext: ReactApplicationContext) : ReactContextB
         val endTime = System.currentTimeMillis()
 
         when (timeRange) {
-            "day" -> calendar.add(Calendar.DAY_OF_YEAR, if (mode == "last") -1 else 0)
-            "week" -> calendar.add(Calendar.WEEK_OF_YEAR, if (mode == "last") -1 else 0)
-            "month" -> calendar.add(Calendar.MONTH, if (mode == "last") -1 else 0)
-            "year" -> calendar.add(Calendar.YEAR, if (mode == "last") -1 else 0)
+            "day" -> {
+                if (mode == "last") {
+                    calendar.add(Calendar.DAY_OF_YEAR, -1)
+                } else {
+                    // Set to the start of the current day
+                    calendar.set(Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                }
+            }
+            "week" -> {
+                if (mode == "last") {
+                    calendar.add(Calendar.WEEK_OF_YEAR, -1)
+                } else {
+                    // Set to the start of the current week
+                    calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+                    calendar.set(Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                }
+            }
+            "month" -> {
+                if (mode == "last") {
+                    calendar.add(Calendar.MONTH, -1)
+                } else {
+                    // Set to the start of the current month
+                    calendar.set(Calendar.DAY_OF_MONTH, 1)
+                    calendar.set(Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                }
+            }
+            "year" -> {
+                if (mode == "last") {
+                    calendar.add(Calendar.YEAR, -1)
+                } else {
+                    // Set to the start of the current year
+                    calendar.set(Calendar.MONTH, Calendar.JANUARY)
+                    calendar.set(Calendar.DAY_OF_MONTH, 1)
+                    calendar.set(Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                }
+            }
             "last24hours" -> calendar.add(Calendar.HOUR_OF_DAY, -24)
             "last7days" -> calendar.add(Calendar.DAY_OF_YEAR, -7)
             "last30days" -> calendar.add(Calendar.DAY_OF_YEAR, -30)

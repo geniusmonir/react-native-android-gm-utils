@@ -29,6 +29,13 @@ import {
   NotificationPermissionStatusType,
   NotificationPayload,
   AGUUsageStatsItem,
+  isBatteryOptimizationEnabled,
+  requestDisableBatteryOptimization,
+  openBackgroundAutoStartSettings,
+  gracefulExitRestart,
+  hasAppUsageAccess,
+  requestAppUsageAccess,
+  getAppUsageStats,
 } from 'react-native-android-gm-utils';
 ```
 
