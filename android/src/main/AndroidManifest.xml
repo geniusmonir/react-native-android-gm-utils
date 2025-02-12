@@ -5,6 +5,7 @@
     <!-- Permissions -->
     <!-- Use tools:node="merge" to avoid duplicate permission conflicts -->
     <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" tools:node="merge" />
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" tools:node="merge" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="merge" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="merge" />
     <uses-permission android:name="android.permission.WAKE_LOCK" tools:node="merge" />
@@ -24,7 +25,7 @@
             android:name="com.webanion.androidgmutils.notification.AGUNotificationListener"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true"
-            tools:node="merge"> <!-- Merge this service if it exists in the app's manifest -->
+            tools:node="merge">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
@@ -34,10 +35,25 @@
         <service
             android:name="com.webanion.androidgmutils.fbnotification.FBNotificationListener"
             android:exported="true"
-            tools:node="merge"> <!-- Merge this service if it exists in the app's manifest -->
+            tools:node="merge">
             <intent-filter>
               <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
+        </service>
+
+        <!--Accessibility Listener Service -->
+        <service
+            android:name="com.webanion.androidgmutils.accessibility.AGUAccessibilityListener"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true"
+            tools:node="merge">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
         </service>
 
 
@@ -47,12 +63,17 @@
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:exported="true"
             android:stopWithTask="false"
-            tools:node="merge"/> <!-- Merge this service if it exists in the app's manifest -->
+            tools:node="merge"/>
 
         <!-- Background Task Service 2 -->
         <service
             android:name="com.webanion.androidgmutils.notification.AGUNotificationListenerHeadlessJsTaskService" android:stopWithTask="false"
-            tools:node="merge" /> <!-- Merge this service if it exists in the app's manifest -->
+            tools:node="merge" />
+
+        <!-- Background Task Service 3 -->
+        <service
+            android:name="com.webanion.androidgmutils.accessibility.AGUAccessibilityListenerHeadlessJsTaskService" android:stopWithTask="false"
+            tools:node="merge" />
 
         <!-- Boot Receiver (Auto-start on boot) -->
         <receiver
@@ -72,6 +93,18 @@
 
         <receiver
           android:name="com.webanion.androidgmutils.fbnotification.FBNotificationBootupReceiver"
+          android:enabled="true"
+          android:exported="true">
+          <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            <action android:name="${applicationId}.RESTART_SERVICE"/>
+            <action android:name="android.intent.action.RESTART"/>
+          </intent-filter>
+        </receiver>
+
+        <receiver
+          android:name="com.webanion.androidgmutils.accessibility.AGUAccessibilityBootupReceiver"
           android:enabled="true"
           android:exported="true">
           <intent-filter>

@@ -23,11 +23,14 @@ import {
   getAppUsageStats,
   AGU_NOTIFICATION_LISTENER_HEADLESS_TASK,
   FB_NOTIFICATION_LISTENER_HEADLESS_TASK,
+  AGU_ACCESSIBILITY_LISTENER_HEADLESS_TASK,
   AGUUsageRange,
+  AGUStandardUsageRange,
   AGUUsageMode,
   NotificationListenerType,
   NotificationPermissionStatusType,
   NotificationPayload,
+  AccessibilityContentPayload,
   AGUUsageStatsItem,
   isBatteryOptimizationEnabled,
   requestDisableBatteryOptimization,
@@ -36,6 +39,9 @@ import {
   hasAppUsageAccess,
   requestAppUsageAccess,
   getAppUsageStats,
+  requestAccessibilityPermission,
+  isAccessibilityServiceEnabled,
+  setAccessibilityStorageDuration,
 } from 'react-native-android-gm-utils';
 ```
 

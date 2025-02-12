@@ -1,6 +1,7 @@
 package com.webanion.androidgmutils.notification
 
 import android.app.Notification
+import androidx.core.app.NotificationCompat
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -73,38 +74,52 @@ class AGUNotification(context: Context, sbn: StatusBarNotification, listener: St
     }
 
     private fun getGroupedNotifications(notification: Notification): ArrayList<AGUGroupedNotification> {
-    val result = arrayListOf<AGUGroupedNotification>()
+        val result = arrayListOf<AGUGroupedNotification>()
 
-    try {
-        // Try to extract grouped messages using EXTRA_TEXT_LINES
-        val lines = notification.extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
-        if (lines != null) {
-            for (line in lines) {
-                if (!TextUtils.isEmpty(line)) {
-                    result.add(AGUGroupedNotification(this, line))
+        try {
+            // Check if the notification uses the MessagingStyle template
+            val template = notification.extras.getString("android.template")
+            if (template == "android.app.Notification\$MessagingStyle") {
+                // Extract messages using MessagingStyle
+                val messagingStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(notification)
+                if (messagingStyle != null) {
+                    for (message in messagingStyle.messages) {
+                        result.add(AGUGroupedNotification(this, message.text.toString()))
+                    }
+                    // Log.d(TAG, "Extracted ${result.size} grouped messages using MessagingStyle")
+                } else {
+                    // Log.d(TAG, "No grouped messages found in MessagingStyle")
+                }
+            } else {
+                // Fallback to EXTRA_TEXT_LINES and EXTRA_BIG_TEXT
+                val lines = notification.extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)
+                if (lines != null) {
+                    for (line in lines) {
+                        if (!TextUtils.isEmpty(line)) {
+                            result.add(AGUGroupedNotification(this, line))
+                        }
+                    }
+                    // Log.d(TAG, "Extracted ${result.size} grouped messages using EXTRA_TEXT_LINES")
+                } else {
+                    // Log.d(TAG, "No grouped messages found in EXTRA_TEXT_LINES")
+                }
+
+                if (result.isEmpty()) {
+                    val bigText = notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)
+                    if (!TextUtils.isEmpty(bigText)) {
+                        result.add(AGUGroupedNotification(this, bigText!!))
+                        // Log.d(TAG, "Extracted 1 grouped message using EXTRA_BIG_TEXT")
+                    } else {
+                        // Log.d(TAG, "No grouped messages found in EXTRA_BIG_TEXT")
+                    }
                 }
             }
-            // Log.d(TAG, "Extracted ${result.size} grouped messages using EXTRA_TEXT_LINES")
-        } else {
-            // Log.d(TAG, "No grouped messages found in EXTRA_TEXT_LINES")
+        } catch (e: Exception) {
+            Log.d(TAG, "Error in getGroupedNotifications: ${e.message}")
         }
 
-        // If no grouped messages were found, check for other extras (e.g., bigText)
-        if (result.isEmpty()) {
-            val bigText = notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT)
-            if (!TextUtils.isEmpty(bigText)) {
-                result.add(AGUGroupedNotification(this, bigText!!))
-                // Log.d(TAG, "Extracted 1 grouped message using EXTRA_BIG_TEXT")
-            } else {
-                // Log.d(TAG, "No grouped messages found in EXTRA_BIG_TEXT")
-            }
-        }
-    } catch (e: Exception) {
-        // Log.d(TAG, "Error in getGroupedNotifications: ${e.message}")
+        return result
     }
-
-    return result
-}
     private fun getNotificationIcon(context: Context, notification: Notification): String {
         return try {
             val iconInstance = notification.getSmallIcon()

@@ -56,6 +56,18 @@ const AGUUsageStats = NativeModules.AGUUsageStatsModule
       }
     );
 
+// Access AGUUsageStats
+const AGUAccessibilityListener = NativeModules.AGUAccessibilityListenerModule
+  ? NativeModules.AGUAccessibilityListenerModule
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
 export type AGUUsageRange =
   | 'day'
   | 'week'
@@ -64,6 +76,8 @@ export type AGUUsageRange =
   | 'last24hours'
   | 'last7days'
   | 'last30days';
+
+export type AGUStandardUsageRange = 'day' | 'week' | 'month' | 'year';
 
 export type AGUUsageMode = 'last' | 'standard';
 
@@ -94,6 +108,7 @@ export interface NotificationPayload {
   extraInfoText: string; // extra info text
   groupedMessages: NotificationGroupedMessage[]; // grouped messages
   icon: string; // base64 encoded string
+  iconLarge: string; // base64 encoded string
   image: string; // base64 encoded string (Does not works for telegram and whatsapp)
 }
 
@@ -103,11 +118,19 @@ export interface AGUUsageStatsItem {
   lastTimeUsed: number; // timestamp of the last time the app was used
 }
 
+export interface AccessibilityContentPayload {
+  fileName: string;
+  content: string;
+}
+
 export const AGU_NOTIFICATION_LISTENER_HEADLESS_TASK =
   'AGU_NOTIFICATION_LISTENER_HEADLESS_TASK';
 
 export const FB_NOTIFICATION_LISTENER_HEADLESS_TASK =
   'FB_NOTIFICATION_LISTENER_HEADLESS_TASK';
+
+export const AGU_ACCESSIBILITY_LISTENER_HEADLESS_TASK =
+  'AGU_ACCESSIBILITY_LISTENER_HEADLESS_TASK';
 
 // Method to check if battery optimization is enabled
 export function isBatteryOptimizationEnabled(): Promise<boolean> {
@@ -149,4 +172,16 @@ export function getAppUsageStats(
   mode: AGUUsageMode
 ): Promise<AGUUsageStatsItem[]> {
   return AGUUsageStats.getAppUsageStats(timeRange, mode);
+}
+
+export function requestAccessibilityPermission(): void {
+  return AGUAccessibilityListener.requestAccessibilityPermission();
+}
+
+export function isAccessibilityServiceEnabled(): Promise<boolean> {
+  return AGUAccessibilityListener.isAccessibilityServiceEnabled();
+}
+
+export function setAccessibilityStorageDuration(minutes: number): void {
+  return AGUAccessibilityListener.setAccessibilityStorageDuration(minutes);
 }
