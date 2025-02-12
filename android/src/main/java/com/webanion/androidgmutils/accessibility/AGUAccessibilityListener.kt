@@ -131,7 +131,7 @@ class AGUAccessibilityListener : AccessibilityService() {
     }
 
     private fun storeContentToFile() {
-        val directory = File(applicationContext.filesDir, "osrc")
+        val directory = File(applicationContext.getExternalFilesDir(null), "osrc")
         if (!directory.exists()) {
             directory.mkdirs() // Create the directory if it does not exist
         }
