@@ -11,7 +11,7 @@ import android.util.Log
 class AGUAccessibilityListenerHeadlessJsTaskService : HeadlessJsTaskService() {
 
     companion object {
-      private const val TAG = "AGUAccessibilityListener"
+      private const val TAG = "AGUAccessibility"
     }
 
     override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {

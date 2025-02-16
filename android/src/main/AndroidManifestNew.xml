@@ -8,6 +8,13 @@
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" tools:node="merge" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="merge" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="merge" />
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" tools:node="merge" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="merge" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="merge" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" tools:node="merge" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" tools:node="merge" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" tools:node="merge"/>
+    <uses-permission android:name="android.permission.CAPTURE_AUDIO_OUTPUT" tools:node="merge"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" tools:node="merge" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="merge" />
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:node="merge" />

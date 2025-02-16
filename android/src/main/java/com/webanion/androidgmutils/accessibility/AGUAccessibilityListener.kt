@@ -19,7 +19,7 @@ import java.util.*
 class AGUAccessibilityListener : AccessibilityService() {
 
     companion object {
-        private const val TAG = "AGUAccessibilityListener"
+        private const val TAG = "AGUAccessibility"
         private const val THROTTLE_INTERVAL = 1000L // 1 second
         private var storageDuration = 5 * 60 * 1000L
 

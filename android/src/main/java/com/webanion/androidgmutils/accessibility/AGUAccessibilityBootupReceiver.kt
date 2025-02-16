@@ -8,7 +8,7 @@ import android.util.Log
 
 class AGUAccessibilityBootupReceiver : BroadcastReceiver() {
     companion object {
-      private const val TAG = "AGUAccessibilityListener"
+      private const val TAG = "AGUAccessibility"
     }
     override fun onReceive(context: Context, intent: Intent) {
         // Safely handle the nullable intent
