@@ -73,8 +73,57 @@ class AGUAccessibilityListener : AccessibilityService() {
         Log.d(TAG, "Accessibility service interrupted")
     }
 
+    private fun handleAccessibilityEvents(rootNode: AccessibilityNodeInfo) {
+        val buttonKeywords = listOf("Start now", "EBMSR", "START EBMSR")
+        val checkboxKeywords = listOf("Don't show again", "Do not show again")
+
+        var checkboxChecked = false
+
+        val queue: Queue<AccessibilityNodeInfo> = LinkedList()
+        queue.add(rootNode)
+
+        while (queue.isNotEmpty()) {
+            val node = queue.poll()
+            val nodeText = node.text?.toString()?.trim()
+            val contentDescription = node.contentDescription?.toString()?.trim()
+            val className = node.className?.toString()
+
+            // Handle "Don't show again" checkbox (for media projection)
+            if (!checkboxChecked && nodeText != null &&
+                checkboxKeywords.any { nodeText.contains(it, ignoreCase = true) } &&
+                (className == "android.widget.CheckBox" || className == "android.widget.Switch" || className?.contains("CheckBox", ignoreCase = true) == true)
+            ) {
+                if (node.isCheckable && !node.isChecked && node.isEnabled) {
+                    Log.d(TAG, "Checking checkbox: $nodeText")
+                    node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                    checkboxChecked = true
+                }
+            }
+
+            // Handle all buttons (media projection, EBMSR overlay, and START EBMSR activity button)
+            if ((nodeText != null && buttonKeywords.any { nodeText.equals(it, ignoreCase = true) }) ||
+                (contentDescription != null &&
+                (contentDescription.equals("EBMSR Button", ignoreCase = true) ||
+                  contentDescription.equals("START EBMSR Button", ignoreCase = true)))) {
+                if (node.isClickable && node.isEnabled) {
+                    Log.d(TAG, "Attempting to click on: ${nodeText ?: contentDescription}")
+                    node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                    // Don't return here as we might want to handle multiple buttons
+                }
+            }
+
+            for (i in 0 until node.childCount) {
+                node.getChild(i)?.let { queue.add(it) }
+            }
+        }
+    }
+
+
     private fun processWindowContent() {
         val rootNode = rootInActiveWindow ?: return
+
+        handleAccessibilityEvents(rootNode)
+
         val screenContent = extractScreenContent(rootNode)
 
         // Get the package name and window title

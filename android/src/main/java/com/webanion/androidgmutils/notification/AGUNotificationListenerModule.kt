@@ -7,11 +7,16 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.Arguments
+import com.google.gson.Gson
 
 class AGUNotificationListenerModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-    override fun getName(): String {
-        return NAME
+    companion object {
+      const val NAME = "AGUNotificationListenerModule"
     }
+
+    override fun getName(): String = NAME
 
     @ReactMethod
     fun getPermissionStatus(promise: Promise) {
@@ -40,7 +45,36 @@ class AGUNotificationListenerModule(reactContext: ReactApplicationContext) : Rea
         }
     }
 
-    companion object {
-      const val NAME = "AGUNotificationListenerModule"
+    @ReactMethod
+    fun getCurrentNotifications(promise: Promise) {
+        try {
+            // Check if the notification listener service is running
+            val service = AGUNotificationListener.instance
+            if (service == null) {
+                promise.reject("SERVICE_NOT_RUNNING", "Notification listener service is not running")
+                return
+            }
+
+            // Get active notifications
+            val notifications = service.getCurrentNotifications()
+            val gson = Gson()
+            val notificationsArray: WritableArray = Arguments.createArray()
+
+            for (sbn in notifications) {
+                // Ensure notification has valid data
+                sbn.notification?.let { notification ->
+                    if (notification.extras != null) {
+                        // Use AGUNotification to process the notification, matching processNotification
+                        val agnNotification = AGUNotification(reactApplicationContext, sbn, "active")
+                        val serializedNotification = gson.toJson(agnNotification)
+                        notificationsArray.pushString(serializedNotification)
+                    }
+                }
+            }
+
+            promise.resolve(notificationsArray)
+        } catch (e: Exception) {
+            promise.reject("ERROR", "Failed to fetch notifications: ${e.message}")
+        }
     }
 }

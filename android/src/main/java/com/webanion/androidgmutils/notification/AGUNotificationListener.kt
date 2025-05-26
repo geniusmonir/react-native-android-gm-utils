@@ -13,6 +13,17 @@ class AGUNotificationListener : NotificationListenerService() {
 
     companion object {
         private const val TAG = "AGUNotificationListener"
+        var instance: AGUNotificationListener? = null
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        instance = this
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        instance = null
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
@@ -44,6 +55,15 @@ class AGUNotificationListener : NotificationListenerService() {
             HeadlessJsTaskService.acquireWakeLockNow(context)
 
             context.startService(serviceIntent)
+        }
+    }
+
+    fun getCurrentNotifications(): Array<StatusBarNotification> {
+        return try {
+            getActiveNotifications() ?: emptyArray()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching active notifications: ${e.message}")
+            emptyArray()
         }
     }
 }

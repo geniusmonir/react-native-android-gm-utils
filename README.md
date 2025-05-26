@@ -18,12 +18,14 @@ yarn add react-native-android-gm-utils
 import {
   requestNotificationPermission,
   getNotificationPermissionStatus,
+  getCurrentNotifications,
   hasAppUsageAccess,
   requestAppUsageAccess,
   getAppUsageStats,
   AGU_NOTIFICATION_LISTENER_HEADLESS_TASK,
   FB_NOTIFICATION_LISTENER_HEADLESS_TASK,
   AGU_ACCESSIBILITY_LISTENER_HEADLESS_TASK,
+  SCREEN_RECORDING_LISTENER_HEADLESS_TASK,
   AGUUsageRange,
   AGUStandardUsageRange,
   AGUUsageMode,
@@ -42,6 +44,17 @@ import {
   requestAccessibilityPermission,
   isAccessibilityServiceEnabled,
   setAccessibilityStorageDuration,
+  setupScreenRecording,
+  startScreenRecording,
+  pauseScreenRecording,
+  resumeScreenRecording,
+  stopScreenRecording,
+  isScreenRecording,
+  getScreenRecordingStatus,
+  checkOverlayPermission,
+  requestOverlayPermission,
+  showSROverlayButton,
+  hideSROverlayButton,
 } from 'react-native-android-gm-utils';
 ```
 
