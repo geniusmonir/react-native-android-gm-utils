@@ -127,7 +127,13 @@ object ScreenRecorderSingleton : HBRecorderListener {
       startPromise?.resolve(resultMap)
       startPromise = null
 
-      handleEvent(resultMap)
+      val eventMap = Arguments.createMap().apply {
+          putString("status", "started")
+          putString("filePath", hbRecorder?.filePath)
+          putString("fileName", hbRecorder?.fileName)
+      }
+
+      handleEvent(eventMap)
     }
 
     override fun HBRecorderOnComplete() {
@@ -140,7 +146,13 @@ object ScreenRecorderSingleton : HBRecorderListener {
       stopPromise?.resolve(resultMap)
       stopPromise = null
 
-      handleEvent(resultMap)
+      val eventMap = Arguments.createMap().apply {
+          putString("status", "completed")
+          putString("filePath", hbRecorder?.filePath)
+          putString("fileName", hbRecorder?.fileName)
+      }
+
+      handleEvent(eventMap)
     }
 
     override fun HBRecorderOnError(errorCode: Int, reason: String?) {

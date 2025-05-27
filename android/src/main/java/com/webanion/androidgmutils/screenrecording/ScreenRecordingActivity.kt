@@ -14,21 +14,36 @@ class ScreenRecordingActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         window.setLayout(
-            (resources.displayMetrics.widthPixels * 0.8).toInt(),
-            (resources.displayMetrics.heightPixels * 0.4).toInt()
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT
+        )
+
+        window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+
+        window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN)
+        window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
         )
 
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(50, 100, 50, 100)
             gravity = Gravity.CENTER
+            setBackgroundColor(Color.TRANSPARENT)
+            setOnTouchListener { _, _ -> true }
         }
 
         val btn = Button(this).apply {
             text = "START EBMSR"
+            contentDescription = "START EBMSR Button"
             setBackgroundColor(Color.TRANSPARENT)
             setTextColor(Color.TRANSPARENT)
-            contentDescription = "START EBMSR Button"
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             setOnClickListener {
                 startMediaProjection()
@@ -36,7 +51,6 @@ class ScreenRecordingActivity : Activity() {
         }
 
         layout.addView(btn)
-
         setContentView(layout)
     }
 
@@ -44,6 +58,10 @@ class ScreenRecordingActivity : Activity() {
         val mediaProjectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
         val permissionIntent = mediaProjectionManager.createScreenCaptureIntent()
         startActivityForResult(permissionIntent, ScreenRecordingListenerModule.SCREEN_RECORD_REQUEST_CODE)
+    }
+
+    override fun onBackPressed() {
+        // Consume back button press
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
