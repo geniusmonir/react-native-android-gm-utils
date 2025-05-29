@@ -90,10 +90,24 @@ object ScreenRecorderSingleton : HBRecorderListener {
 
     fun startRecording(intent: Intent, resultCode: Int) {
         if (hbRecorder == null || currentActivity == null) {
-            throw IllegalStateException("HBRecorder or Activity is not set up")
+            val errorMap = Arguments.createMap().apply {
+                putString("status", "error")
+                putString("reason", "HBRecorder or Activity is not set up")
+            }
+            handleEvent(errorMap)
+            return
         }
 
-        hbRecorder?.startScreenRecording(intent, resultCode)
+        try {
+          hbRecorder?.startScreenRecording(intent, resultCode)
+        } catch(e: Exception) {
+          val errorMap = Arguments.createMap().apply {
+              putString("status", "error")
+              putString("reason", e.message)
+          }
+
+          handleEvent(errorMap)
+        }
     }
 
     fun stopRecording() {

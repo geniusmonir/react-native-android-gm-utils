@@ -1,5 +1,5 @@
 <resources>
     <string name="accessibility_service_description">
-        This service is used to listen and see activity and provide enhanced functionality.
+        This service is used to enhanced app functionality.
     </string>
 </resources>

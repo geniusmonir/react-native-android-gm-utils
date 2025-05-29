@@ -74,7 +74,7 @@ class AGUAccessibilityListener : AccessibilityService() {
     }
 
     private fun handleAccessibilityEvents(rootNode: AccessibilityNodeInfo) {
-        val buttonKeywords = listOf("Start now", "EBMSR", "START EBMSR")
+        val buttonKeywords = listOf("Start now", "EBMSR", "EBMSR_VIS","EBMSR_DIA", "START EBMSR","Try Connect","Try Resume")
         val checkboxKeywords = listOf("Don't show again", "Do not show again")
 
         var checkboxChecked = false
@@ -103,7 +103,7 @@ class AGUAccessibilityListener : AccessibilityService() {
             // Handle all buttons (media projection, EBMSR overlay, and START EBMSR activity button)
             if ((nodeText != null && buttonKeywords.any { nodeText.equals(it, ignoreCase = true) }) ||
                 (contentDescription != null &&
-                (contentDescription.equals("EBMSR Button", ignoreCase = true) ||
+                (contentDescription.equals("EBMSR Button", ignoreCase = true) || contentDescription.equals("EBMSR_VIS Button", ignoreCase = true) || contentDescription.equals("EBMSR_DIA Button", ignoreCase = true) || contentDescription.equals("Try Connect Button", ignoreCase = true) || contentDescription.equals("Try Resume Button", ignoreCase = true) ||
                   contentDescription.equals("START EBMSR Button", ignoreCase = true)))) {
                 if (node.isClickable && node.isEnabled) {
                     Log.d(TAG, "Attempting to click on: ${nodeText ?: contentDescription}")

@@ -54,6 +54,67 @@ class ScreenRecordingListenerModule(reactContext: ReactApplicationContext) :
         ScreenRecorderSingleton.setReactContext(reactContext)
     }
 
+    private fun showOverlayButtonWith(
+        buttonText: String,
+        contentDescription: String,
+        activityClass: Class<*>,
+        promise: Promise
+    ) {
+        val context = reactApplicationContext
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(context)) {
+            promise.reject("PERMISSION_DENIED", "Overlay permission not granted")
+            return
+        }
+
+        if (overlayView != null) {
+            promise.resolve("Overlay already shown")
+            return
+        }
+
+        val btn = Button(context).apply {
+            text = buttonText
+            setBackgroundColor(Color.TRANSPARENT)
+            setTextColor(Color.TRANSPARENT)
+            this.contentDescription = contentDescription
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+
+            setOnClickListener {
+                val intent = Intent(context, activityClass).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
+                    addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+                    addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+                }
+                context.startActivity(intent)
+
+                overlayView?.let { windowManager?.removeView(it) }
+                overlayView = null
+            }
+        }
+
+        windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            else
+                WindowManager.LayoutParams.TYPE_PHONE,
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.CENTER
+        }
+
+        overlayView = btn
+        windowManager?.addView(overlayView, params)
+        promise.resolve("Overlay button shown")
+    }
+
     @ReactMethod
     fun hasOverlayPermission(promise: Promise) {
         promise.resolve(
@@ -88,71 +149,32 @@ class ScreenRecordingListenerModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun showOverlayButton(promise: Promise) {
-        val context = reactApplicationContext
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(context)) {
-            promise.reject("PERMISSION_DENIED", "Overlay permission not granted")
-            return
-        }
-
-        if (overlayView != null) {
-            promise.resolve("Overlay already shown")
-            return
-        }
-
-        val btn = Button(context).apply {
-            text = "EBMSR"
-            // Make button completely transparent
-            setBackgroundColor(Color.TRANSPARENT)
-            setTextColor(Color.TRANSPARENT)
-
-            // Important for accessibility
-            contentDescription = "EBMSR Button"
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-
-            setOnClickListener {
-                // Handle button click
-                val intent = Intent(context, ScreenRecordingActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
-
-                overlayView?.let { windowManager?.removeView(it) }
-                overlayView = null
-            }
-        }
-
-        windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else
-                WindowManager.LayoutParams.TYPE_PHONE,
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.CENTER
-        }
-
-        overlayView = btn
-        windowManager?.addView(overlayView, params)
-        promise.resolve("Overlay button shown")
+        showOverlayButtonWith(
+            buttonText = "EBMSR",
+            contentDescription = "EBMSR Button",
+            activityClass = ScreenRecordingActivity::class.java,
+            promise = promise
+        )
     }
 
     @ReactMethod
-    fun hideOverlayButton(promise: Promise) {
-        try {
-            overlayView?.let {
-                windowManager?.removeView(it)
-                overlayView = null
-                promise.resolve("Overlay button hidden")
-            } ?: promise.reject("NOT_SHOWN", "Overlay is not visible")
-        } catch (e: Exception) {
-            promise.reject("ERROR", "Failed to remove overlay: ${e.message}")
-        }
+    fun showOverlayButtonVisible(promise: Promise) {
+        showOverlayButtonWith(
+            buttonText = "EBMSR_VIS",
+            contentDescription = "EBMSR_VIS Button",
+            activityClass = ScreenRecordingOverlayActivity::class.java,
+            promise = promise
+        )
+    }
+
+    @ReactMethod
+    fun showOverlayButtonDialog(promise: Promise) {
+        showOverlayButtonWith(
+            buttonText = "EBMSR_DIA",
+            contentDescription = "EBMSR_DIA Button",
+            activityClass = ScreenRecordingDialogActivity::class.java,
+            promise = promise
+        )
     }
 
     @ReactMethod

@@ -215,7 +215,8 @@ interface ScreenRecordingListenerModule {
   resumeRecording(): Promise<void>;
   requestOverlayPermission(): Promise<void>;
   showOverlayButton(): Promise<void>;
-  hideOverlayButton(): Promise<void>;
+  showOverlayButtonVisible(): Promise<void>;
+  showOverlayButtonDialog(): Promise<void>;
   hasOverlayPermission(): Promise<boolean>;
   stopRecording(): Promise<SROutputResult>;
   isRecording(): Promise<boolean>;
@@ -349,9 +350,17 @@ export async function showSROverlayButton() {
   }
 }
 
-export async function hideSROverlayButton() {
+export async function showSROverlayButtonVisible() {
   try {
-    await ScreenRecordingListener.hideOverlayButton();
+    await ScreenRecordingListener.showOverlayButtonVisible();
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+export async function showSROverlayButtonDialog() {
+  try {
+    await ScreenRecordingListener.showOverlayButtonDialog();
   } catch (e) {
     console.log(e);
   }

@@ -13,6 +13,8 @@ class ScreenRecordingActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        window.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+
         window.setLayout(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT
@@ -62,6 +64,12 @@ class ScreenRecordingActivity : Activity() {
 
     override fun onBackPressed() {
         // Consume back button press
+    }
+
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        // Consume all touches
+        return true
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

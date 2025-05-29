@@ -54,7 +54,8 @@ import {
   checkOverlayPermission,
   requestOverlayPermission,
   showSROverlayButton,
-  hideSROverlayButton,
+  showSROverlayButtonVisible,
+  showSROverlayButtonDialog,
 } from 'react-native-android-gm-utils';
 ```
 

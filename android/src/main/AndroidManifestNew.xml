@@ -31,7 +31,22 @@
         tools:ignore="GoogleAppIndexingWarning"> <!-- Suppress Google App Indexing warning -->
 
         <activity android:name="com.webanion.androidgmutils.screenrecording.ScreenRecordingActivity"
-            android:theme="@style/TransparentActivityTheme"
+            android:theme="@style/ActivityTheme"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:exported="true"
+            android:launchMode="singleTop" />
+
+        <activity android:name="com.webanion.androidgmutils.screenrecording.ScreenRecordingOverlayActivity"
+            android:theme="@style/OverlayActivityTheme"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:exported="true"
+            android:launchMode="singleTop" />
+
+
+        <activity android:name="com.webanion.androidgmutils.screenrecording.ScreenRecordingDialogActivity"
+            android:theme="@style/DialogActivityTheme"
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:exported="true"
