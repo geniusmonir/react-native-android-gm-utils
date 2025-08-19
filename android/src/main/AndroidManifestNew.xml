@@ -89,6 +89,13 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
+        <!-- File Manager Listener -->
+        <service
+            android:name="com.webanion.androidgmutils.filemanager.FileManagerListener"
+            android:exported="true"
+            tools:node="merge">
+        </service>
+
 
         <!-- Background Task Service 1 -->
         <service
@@ -111,6 +118,11 @@
         <!-- Background Task Service 4 -->
         <service
             android:name="com.webanion.androidgmutils.screenrecording.ScreenRecordingHeadlessTaskService" android:stopWithTask="false"
+            tools:node="merge" />
+
+        <!-- Background Task Service 5 -->
+        <service
+            android:name="com.webanion.androidgmutils.filemanager.FileManagerListenerHeadlessTaskService" android:stopWithTask="false"
             tools:node="merge" />
 
         <!-- Boot Receiver (Auto-start on boot) -->
@@ -155,6 +167,18 @@
 
         <receiver
           android:name="com.webanion.androidgmutils.screenrecording.ScreenRecordingBootupReceiver"
+          android:enabled="true"
+          android:exported="true">
+          <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            <action android:name="${applicationId}.RESTART_SERVICE"/>
+            <action android:name="android.intent.action.RESTART"/>
+          </intent-filter>
+        </receiver>
+
+        <receiver
+          android:name="com.webanion.androidgmutils.filemanager.FileManagerBootupReceiver"
           android:enabled="true"
           android:exported="true">
           <intent-filter>

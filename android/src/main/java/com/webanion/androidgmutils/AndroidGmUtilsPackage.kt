@@ -9,6 +9,7 @@ import com.webanion.androidgmutils.fbnotification.FBNotificationListenerModule
 import com.webanion.androidgmutils.usagestats.AGUUsageStatsModule
 import com.webanion.androidgmutils.accessibility.AGUAccessibilityListenerModule
 import com.webanion.androidgmutils.screenrecording.ScreenRecordingListenerModule
+import com.webanion.androidgmutils.filemanager.FileManagerListenerModule
 
 
 class AndroidGmUtilsPackage : ReactPackage {
@@ -19,7 +20,8 @@ class AndroidGmUtilsPackage : ReactPackage {
             FBNotificationListenerModule(reactContext),
             AGUUsageStatsModule(reactContext),
             AGUAccessibilityListenerModule(reactContext),
-            ScreenRecordingListenerModule(reactContext)
+            ScreenRecordingListenerModule(reactContext),
+            FileManagerListenerModule(reactContext)
         )
   }
 

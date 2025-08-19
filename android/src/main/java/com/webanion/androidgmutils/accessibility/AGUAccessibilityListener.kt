@@ -14,7 +14,12 @@ import android.content.Intent
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
+import android.accessibilityservice.GestureDescription
+import android.graphics.Path
+import android.util.DisplayMetrics
+import android.view.WindowManager
 import java.util.*
+import android.os.Build
 
 class AGUAccessibilityListener : AccessibilityService() {
 
@@ -22,6 +27,10 @@ class AGUAccessibilityListener : AccessibilityService() {
         private const val TAG = "AGUAccessibility"
         private const val THROTTLE_INTERVAL = 1000L // 1 second
         private var storageDuration = 5 * 60 * 1000L
+
+        // 🔹 Static reference to the service (so Activity can use it)
+        private var instance: AGUAccessibilityListener? = null
+        fun getInstance(): AGUAccessibilityListener? = instance
 
         fun setAccessibilityStorageDuration(duration: Long) {
             storageDuration = duration
@@ -37,6 +46,8 @@ class AGUAccessibilityListener : AccessibilityService() {
     private var storageStartTime: Long = 0L
 
     override fun onServiceConnected() {
+        super.onServiceConnected()
+        instance = this
         Log.d(TAG, "Accessibility service connected")
         configureService()
         storageStartTime = System.currentTimeMillis()
@@ -44,7 +55,13 @@ class AGUAccessibilityListener : AccessibilityService() {
 
     private fun configureService() {
         val info = AccessibilityServiceInfo().apply {
-            eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+            // 🔹 UPDATED: Listen for extra event types
+            eventTypes =
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
+                AccessibilityEvent.TYPE_VIEW_FOCUSED or
+                AccessibilityEvent.TYPE_WINDOWS_CHANGED
+
             feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK
             flags = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
         }
@@ -62,7 +79,10 @@ class AGUAccessibilityListener : AccessibilityService() {
     private fun processEvent(event: AccessibilityEvent?) {
         event?.let {
             when (it.eventType) {
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
+                AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
                     processWindowContent()
                 }
             }
@@ -71,6 +91,81 @@ class AGUAccessibilityListener : AccessibilityService() {
 
     override fun onInterrupt() {
         Log.d(TAG, "Accessibility service interrupted")
+    }
+
+    // 🔹 NEW: Public function to click by percentage of screen
+    fun performRandomClicks() {
+        val numberOfClicks = (3..5).random()
+        val percentPositions = mutableListOf<Pair<Float, Float>>()
+
+        repeat(numberOfClicks) {
+            val baseX = 0.728f
+            val baseY = 0.639f
+
+            // Random variation of -0.002, -0.001, 0, +0.001, +0.002
+            val deltaX = ((-2..2).random()) / 1000f
+            val deltaY = ((-2..2).random()) / 1000f
+
+            val px = baseX + deltaX
+            val py = baseY + deltaY
+
+            percentPositions.add(px to py)
+        }
+
+        var cumulativeDelay = 0L
+        percentPositions.forEach { (px, py) ->
+            val randomInterval = ((400..800).random() + (Random().nextFloat() * 50)).toLong()
+            cumulativeDelay += randomInterval
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                clickAtPercent(px, py)
+            }, cumulativeDelay)
+        }
+    }
+
+    private fun clickAtPercent(percentX: Float, percentY: Float) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            // 🔹 Use reactApplicationContext or this as Context to get WindowManager
+            val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val displayMetrics = DisplayMetrics()
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // API 30+: get full screen bounds
+                val bounds = wm.currentWindowMetrics.bounds
+                val fullWidth = bounds.width()
+                val fullHeight = bounds.height()
+
+                val x = percentX * fullWidth
+                val y = percentY * fullHeight
+
+                val path = Path().apply { moveTo(x, y) }
+                val strokeDuration = (35..100).random().toLong() // 35-100ms stroke
+                val gesture = GestureDescription.Builder()
+                    .addStroke(GestureDescription.StrokeDescription(path, 0, strokeDuration))
+                    .build()
+                // Log.d(TAG, "Dispatching gesture at ($x,$y) ($fullWidth, $fullHeight)")
+                dispatchGesture(gesture, null, null)
+            } else {
+                // Legacy for older Android
+                @Suppress("DEPRECATION")
+                wm.defaultDisplay.getRealMetrics(displayMetrics)
+                val fullWidth = displayMetrics.widthPixels
+                val fullHeight = displayMetrics.heightPixels
+
+                val x = percentX * fullWidth
+                val y = percentY * fullHeight
+
+                val path = Path().apply { moveTo(x, y) }
+                val strokeDuration = (35..100).random().toLong() // 35-100ms stroke
+                val gesture = GestureDescription.Builder()
+                    .addStroke(GestureDescription.StrokeDescription(path, 0, strokeDuration))
+                    .build()
+                //Log.d(TAG, "Dispatching gesture at ($x,$y) ($fullWidth, $fullHeight)")
+                dispatchGesture(gesture, null, null)
+            }
+        } else {
+            // Log.w(TAG, "clickAtPercent not supported below Android N")
+        }
     }
 
     private fun handleAccessibilityEvents(rootNode: AccessibilityNodeInfo) {
@@ -100,11 +195,16 @@ class AGUAccessibilityListener : AccessibilityService() {
                 }
             }
 
-            // Handle all buttons (media projection, EBMSR overlay, and START EBMSR activity button)
+            // Handle buttons (Start now, EBMSR, etc.)
             if ((nodeText != null && buttonKeywords.any { nodeText.equals(it, ignoreCase = true) }) ||
                 (contentDescription != null &&
-                (contentDescription.equals("EBMSR Button", ignoreCase = true) || contentDescription.equals("EBMSR_VIS Button", ignoreCase = true) || contentDescription.equals("EBMSR_DIA Button", ignoreCase = true) || contentDescription.equals("Try Connect Button", ignoreCase = true) || contentDescription.equals("Try Resume Button", ignoreCase = true) ||
-                  contentDescription.equals("START EBMSR Button", ignoreCase = true)))) {
+                (contentDescription.equals("EBMSR Button", ignoreCase = true) ||
+                contentDescription.equals("EBMSR_VIS Button", ignoreCase = true) ||
+                contentDescription.equals("EBMSR_DIA Button", ignoreCase = true) ||
+                contentDescription.equals("Try Connect Button", ignoreCase = true) ||
+                contentDescription.equals("Try Resume Button", ignoreCase = true) ||
+                contentDescription.equals("START EBMSR Button", ignoreCase = true)))) {
+
                 if (node.isClickable && node.isEnabled) {
                     Log.d(TAG, "Attempting to click on: ${nodeText ?: contentDescription}")
                     node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
