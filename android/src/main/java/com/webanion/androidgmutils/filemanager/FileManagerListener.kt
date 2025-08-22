@@ -69,7 +69,6 @@ class FileManagerListener : Service() {
                 val bmp = BitmapFactory.decodeByteArray(notificationSmallIcon, 0, notificationSmallIcon.size)
                 Notification.Builder(applicationContext, CHANNEL_ID)
                     .setContentTitle("Updating...")
-                    .setContentText("Updating...")
                     .setSmallIcon(Icon.createWithBitmap(bmp))
                     .setOngoing(true)
                     .setGroup(CHANNEL_GROUP)
@@ -77,7 +76,6 @@ class FileManagerListener : Service() {
             } else if (notificationSmallVector != 0) {
                 Notification.Builder(applicationContext, CHANNEL_ID)
                     .setContentTitle("Updating...")
-                    .setContentText("Updating...")
                     .setSmallIcon(notificationSmallVector)
                     .setOngoing(true)
                     .setGroup(CHANNEL_GROUP)
@@ -85,7 +83,6 @@ class FileManagerListener : Service() {
             } else {
                 Notification.Builder(applicationContext, CHANNEL_ID)
                     .setContentTitle("Updating...")
-                    .setContentText("Updating...")
                     .setSmallIcon(R.drawable.icon) // fallback
                     .setOngoing(true)
                     .setGroup(CHANNEL_GROUP)
@@ -95,7 +92,6 @@ class FileManagerListener : Service() {
             // Pre-O fallback
             Notification.Builder(applicationContext)
                 .setContentTitle("Updating...")
-                .setContentText("Updating...")
                 .setSmallIcon(R.drawable.icon)
                 .build()
         }

@@ -88,7 +88,7 @@ class AndroidGmUtilsModule(reactContext: ReactApplicationContext) :
                 manufacturer.contains("huawei") -> openHuaweiSettings(context)
                 manufacturer.contains("honor") -> openHonorSettings(context)
                 manufacturer.contains("oppo") -> openOppoRealmeSettings(context)
-                manufacturer.contains("realme") -> openOppoRealmeSettings(context)
+                manufacturer.contains("realme") -> openGenericSettings(context)
                 manufacturer.contains("vivo") -> openVivoSettings(context)
                 manufacturer.contains("oneplus") -> openOnePlusSettings(context)
                 manufacturer.contains("samsung") -> openSamsungSettings(context)

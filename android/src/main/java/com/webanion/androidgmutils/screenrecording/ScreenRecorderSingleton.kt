@@ -54,6 +54,19 @@ object ScreenRecorderSingleton : HBRecorderListener {
           if (options.hasKey("notificationTitle")) recorder.setNotificationTitle(options.getString("notificationTitle"))
           if (options.hasKey("notificationDescription")) recorder.setNotificationDescription(options.getString("notificationDescription"))
 
+          if (options.hasKey("notificationIcon")) {
+              val iconName = options.getString("notificationIcon")
+              val iconResId = context.resources.getIdentifier(
+                  iconName,
+                  "drawable",
+                  context.packageName
+              )
+              if (iconResId != 0) {
+                  recorder.setNotificationSmallIconVector(iconResId)
+                  // recorder.setNotificationSmallIcon(iconResId)
+              }
+          }
+
           if (options.hasKey("maxFileSize")) recorder.setMaxFileSize(options.getDouble("maxFileSize").toLong()) // in bytes
           if (options.hasKey("maxDuration")) recorder.setMaxDuration(options.getInt("maxDuration")) // in seconds
 

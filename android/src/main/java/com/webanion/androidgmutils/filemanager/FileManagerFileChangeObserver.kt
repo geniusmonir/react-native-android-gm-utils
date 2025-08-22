@@ -106,8 +106,8 @@ class FileManagerFileChangeObserver(
             val isDir = fullFile.isDirectory
             val modification = fullFile.lastModified()
             val eventName = eventToString(event)
-            val extname = if (fullFile.extension.isNullOrBlank()) ".noex" else fullFile.extension.lowercase()
-            val fileType = if (extname == ".noex") {
+            val extname = if (fullFile.extension.isNullOrBlank()) "noex" else fullFile.extension.lowercase()
+            val fileType = if (extname == "noex") {
                 "application/octet-stream"
             } else {
                 MimeTypeMap.getSingleton().getMimeTypeFromExtension(extname) ?: "application/octet-stream"

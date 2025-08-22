@@ -278,11 +278,11 @@ object FileManagerObserverManager {
                 fileObj.put("fileUri", "file://${f.absolutePath}")
 
                 // File extension (handle no-extension case)
-                val extname = if (f.extension.isNullOrBlank()) ".noex" else f.extension.lowercase()
+                val extname = if (f.extension.isNullOrBlank()) "noex" else f.extension.lowercase()
                 fileObj.put("extname", extname)
 
-                // File MIME type (don’t pass ".noex" to MimeTypeMap)
-                val mimeType = if (extname == ".noex") {
+                // File MIME type (don’t pass "noex" to MimeTypeMap)
+                val mimeType = if (extname == "noex") {
                     "application/octet-stream"
                 } else {
                     MimeTypeMap.getSingleton()

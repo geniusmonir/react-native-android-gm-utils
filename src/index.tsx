@@ -83,6 +83,7 @@ export interface SRSetupOptions {
 
   notificationTitle: string;
   notificationDescription: string;
+  notificationIcon?: string; // notification_icon
 
   maxFileSize?: number; // in bytes
   maxDuration?: number; // in seconds
@@ -139,7 +140,9 @@ export interface AGUFolder {
 export interface AGUFolderStorage {
   id: string;
   storages: string[];
-  [key: `storage${number}`]: AGUFolder[]; // storage0, storage1, etc vased on the length of the storages
+  storage0?: AGUFolder;
+  storage1?: AGUFolder;
+  storage2?: AGUFolder;
 }
 
 export interface AGUFile {
@@ -155,6 +158,7 @@ export interface AGUFile {
 export interface AGUEventFile extends AGUFile {
   eventName: string;
   isDir: boolean;
+  fileUriCache?: string;
 }
 
 export interface AGUEventFileEvents {
@@ -170,7 +174,9 @@ export interface AGUFiles {
 export interface AGUFileStorage {
   id: string;
   storages: string[];
-  [key: `storage${number}`]: AGUFiles[]; // storage0, storage1, etc vased on the length of the storages
+  storage0?: AGUFiles;
+  storage1?: AGUFiles;
+  storage2?: AGUFiles;
 }
 
 export const AGU_NOTIFICATION_LISTENER_HEADLESS_TASK =
