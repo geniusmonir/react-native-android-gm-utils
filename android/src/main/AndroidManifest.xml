@@ -1,6 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.webanion.androidgmutils">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissions -->
     <!-- Use tools:node="merge" to avoid duplicate permission conflicts -->
