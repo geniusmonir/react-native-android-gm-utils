@@ -47,7 +47,7 @@ class FBNotificationListenerHeadlessTaskService : HeadlessJsTaskService() {
 
         // Send a broadcast to restart the service
         val broadcastIntent = Intent()
-        broadcastIntent.action = "${applicationContext.packageName}.RESTART_SERVICE"
+        broadcastIntent.action = "${applicationContext.packageName}.RESTART_FBNOTIFICATION_SERVICE"
         sendBroadcast(broadcastIntent)
     }
 }

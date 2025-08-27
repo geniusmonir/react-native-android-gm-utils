@@ -17,7 +17,7 @@ class AGUNotificationBootupReceiver : BroadcastReceiver() {
 
         when (action) {
             Intent.ACTION_BOOT_COMPLETED,
-            "${context.packageName}.RESTART_SERVICE",
+            "${context.packageName}.RESTART_NOTIFICATION_SERVICE",
             Intent.ACTION_MY_PACKAGE_REPLACED,
             "android.intent.action.RESTART" -> {
               context.startService(Intent(context, AGUNotificationListener::class.java))

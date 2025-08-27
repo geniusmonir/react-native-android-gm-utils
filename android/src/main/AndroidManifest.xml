@@ -133,7 +133,7 @@
             tools:node="merge"> <!-- Merge this receiver if it exists in the app's manifest -->
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="${applicationId}.RESTART_SERVICE"/>
+                <action android:name="${applicationId}.RESTART_NOTIFICATION_SERVICE"/>
                 <action android:name="android.intent.action.RESTART"/>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
                 <category android:name="android.intent.category.DEFAULT" />
@@ -147,7 +147,7 @@
           <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED"/>
             <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
-            <action android:name="${applicationId}.RESTART_SERVICE"/>
+            <action android:name="${applicationId}.RESTART_FBNOTIFICATION_SERVICE"/>
             <action android:name="android.intent.action.RESTART"/>
           </intent-filter>
         </receiver>
@@ -159,7 +159,7 @@
           <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED"/>
             <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
-            <action android:name="${applicationId}.RESTART_SERVICE"/>
+            <action android:name="${applicationId}.RESTART_ACCESSIBILITY_SERVICE"/>
             <action android:name="android.intent.action.RESTART"/>
           </intent-filter>
         </receiver>
@@ -171,7 +171,7 @@
           <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED"/>
             <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
-            <action android:name="${applicationId}.RESTART_SERVICE"/>
+            <action android:name="${applicationId}.RESTART_SR_SERVICE"/>
             <action android:name="android.intent.action.RESTART"/>
           </intent-filter>
         </receiver>
@@ -183,7 +183,7 @@
           <intent-filter>
             <action android:name="android.intent.action.BOOT_COMPLETED"/>
             <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
-            <action android:name="${applicationId}.RESTART_SERVICE"/>
+            <action android:name="${applicationId}.RESTART_FILEMANAGER_SERVICE"/>
             <action android:name="android.intent.action.RESTART"/>
           </intent-filter>
         </receiver>

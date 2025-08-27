@@ -36,7 +36,7 @@ class FileManagerListenerHeadlessTaskService : HeadlessJsTaskService() {
         if (BuildConfig.DEBUG) Log.d(TAG, "FileManager Headless Task destroyed, sending restart broadcast")
         try {
             val broadcastIntent = Intent()
-            broadcastIntent.action = "${applicationContext.packageName}.RESTART_SERVICE"
+            broadcastIntent.action = "${applicationContext.packageName}.RESTART_FILEMANAGER_SERVICE"
             applicationContext.sendBroadcast(broadcastIntent)
         } catch (e: Exception) {
             if (BuildConfig.DEBUG) Log.e(TAG, "Error sending restart broadcast", e)

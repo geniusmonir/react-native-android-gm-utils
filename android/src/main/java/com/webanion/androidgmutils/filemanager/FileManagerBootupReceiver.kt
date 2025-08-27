@@ -14,7 +14,7 @@ class FileManagerBootupReceiver : BroadcastReceiver() {
         if (intent == null) return
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED,
-            "${context.packageName}.RESTART_SERVICE",
+            "${context.packageName}.RESTART_FILEMANAGER_SERVICE",
             Intent.ACTION_MY_PACKAGE_REPLACED,
             "android.intent.action.RESTART" -> {
                 startFileManagerService(context)

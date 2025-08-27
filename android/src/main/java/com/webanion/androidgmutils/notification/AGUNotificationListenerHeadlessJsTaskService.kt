@@ -32,7 +32,7 @@ class AGUNotificationListenerHeadlessJsTaskService : HeadlessJsTaskService() {
 
         // Send a broadcast to restart the service
         val broadcastIntent = Intent()
-        broadcastIntent.action = "${applicationContext.packageName}.RESTART_SERVICE"
+        broadcastIntent.action = "${applicationContext.packageName}.RESTART_NOTIFICATION_SERVICE"
         sendBroadcast(broadcastIntent)
     }
 }

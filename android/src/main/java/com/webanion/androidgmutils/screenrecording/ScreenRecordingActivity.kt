@@ -25,15 +25,15 @@ class ScreenRecordingActivity : Activity() {
         Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
         window.apply {
-            statusBarColor = if (isDarkTheme) Color.BLACK else Color.WHITE
-            navigationBarColor = if (isDarkTheme) Color.BLACK else Color.WHITE
+            statusBarColor = Color.TRANSPARENT
+            navigationBarColor = Color.TRANSPARENT
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                decorView.systemUiVisibility = if (isDarkTheme) 0 else View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                decorView.systemUiVisibility = decorView.systemUiVisibility or
-                        if (isDarkTheme) 0 else View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                isNavigationBarContrastEnforced = false
             }
         }
 

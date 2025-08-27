@@ -52,47 +52,34 @@ class FileManagerListener : Service() {
     }
 
     private fun startTemporaryForeground(intent: Intent?) {
-        val notificationSmallIcon: ByteArray? = intent?.getByteArrayExtra("notificationSmallBitmap")
-        val notificationSmallVector: Int = intent?.getIntExtra("notificationSmallVector", 0) ?: 0
+        val iconName = "notification_icon"
+        val iconResId = applicationContext.resources.getIdentifier(
+            iconName,
+            "drawable",
+            applicationContext.packageName
+        )
 
         val notification: Notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(NotificationManager::class.java)
             if (manager != null && manager.getNotificationChannel(CHANNEL_ID) == null) {
-                val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW)
+                val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_NONE)
                 channel.lightColor = Color.BLUE
                 channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
                 manager.createNotificationChannel(channel)
             }
 
-            // if–else style to pick icon
-            if (notificationSmallIcon != null) {
-                val bmp = BitmapFactory.decodeByteArray(notificationSmallIcon, 0, notificationSmallIcon.size)
-                Notification.Builder(applicationContext, CHANNEL_ID)
-                    .setContentTitle("Updating...")
-                    .setSmallIcon(Icon.createWithBitmap(bmp))
-                    .setOngoing(true)
-                    .setGroup(CHANNEL_GROUP)
-                    .build()
-            } else if (notificationSmallVector != 0) {
-                Notification.Builder(applicationContext, CHANNEL_ID)
-                    .setContentTitle("Updating...")
-                    .setSmallIcon(notificationSmallVector)
-                    .setOngoing(true)
-                    .setGroup(CHANNEL_GROUP)
-                    .build()
-            } else {
-                Notification.Builder(applicationContext, CHANNEL_ID)
-                    .setContentTitle("Updating...")
-                    .setSmallIcon(R.drawable.icon) // fallback
-                    .setOngoing(true)
-                    .setGroup(CHANNEL_GROUP)
-                    .build()
-            }
+            Notification.Builder(applicationContext, CHANNEL_ID)
+                .setContentTitle("Updating...")
+                .setOngoing(true)
+                .setSmallIcon(if (iconResId != 0) iconResId else R.drawable.icon)
+                .setGroup(CHANNEL_GROUP)
+                .build()
         } else {
             // Pre-O fallback
             Notification.Builder(applicationContext)
                 .setContentTitle("Updating...")
-                .setSmallIcon(R.drawable.icon)
+                .setSmallIcon(if (iconResId != 0) iconResId else R.drawable.icon)
+                .setGroup(CHANNEL_GROUP)
                 .build()
         }
 
