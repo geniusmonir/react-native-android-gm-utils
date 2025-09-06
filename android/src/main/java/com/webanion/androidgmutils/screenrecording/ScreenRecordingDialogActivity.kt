@@ -146,8 +146,10 @@ class ScreenRecordingDialogActivity : Activity() {
         // Optional: let singleton know which activity is active (backwards compatibility)
         ScreenRecorderSingleton.setActivity(this)
 
-        // Simulate a quick user tap to bypass input throttling on Android 12+
-        simulateUserTap()
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+           // Simulate a quick user tap to bypass input throttling on Android 12+
+           simulateUserTap()
+         }
     }
 
     private fun startScreenCapture() {

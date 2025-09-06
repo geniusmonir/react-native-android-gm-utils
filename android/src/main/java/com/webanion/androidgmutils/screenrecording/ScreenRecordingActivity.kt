@@ -52,8 +52,10 @@ class ScreenRecordingActivity : Activity() {
         // Optional: let singleton know which activity is active (backwards compatibility)
         ScreenRecorderSingleton.setActivity(this)
 
-        // Simulate a quick user tap to bypass input throttling on Android 12+
-        simulateUserTap()
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+           // Simulate a quick user tap to bypass input throttling on Android 12+
+           simulateUserTap()
+         }
 
         val initialDelay = (150..250).random().toLong()
         Handler(Looper.getMainLooper()).postDelayed({ startScreenCapture() }, initialDelay)
@@ -141,7 +143,7 @@ class ScreenRecordingActivity : Activity() {
     }
 
     companion object {
-        const val MAX_PERMISSION_RETRIES = 3
+        const val MAX_PERMISSION_RETRIES = 5
         fun start(context: Context) {
             val intent = Intent(context, ScreenRecordingActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)

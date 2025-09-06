@@ -55,15 +55,22 @@ class AGUAccessibilityListener : AccessibilityService() {
 
     private fun configureService() {
         val info = AccessibilityServiceInfo().apply {
-            // 🔹 UPDATED: Listen for extra event types
-            eventTypes =
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
-                AccessibilityEvent.TYPE_VIEW_FOCUSED or
-                AccessibilityEvent.TYPE_WINDOWS_CHANGED
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // ✅ Newer versions (API 31+)
+                eventTypes =
+                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+                    AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
+                    AccessibilityEvent.TYPE_VIEW_FOCUSED or
+                    AccessibilityEvent.TYPE_WINDOWS_CHANGED
 
-            feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK
-            flags = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+                feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK
+                flags = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            } else {
+                // ✅ Older versions (< API 31)
+                eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK
+                flags = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            }
         }
         this.serviceInfo = info
     }
@@ -78,12 +85,20 @@ class AGUAccessibilityListener : AccessibilityService() {
 
     private fun processEvent(event: AccessibilityEvent?) {
         event?.let {
-            when (it.eventType) {
-                AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
-                AccessibilityEvent.TYPE_VIEW_FOCUSED,
-                AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
-                    processWindowContent()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                when (it.eventType) {
+                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
+                    AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
+                    AccessibilityEvent.TYPE_VIEW_FOCUSED,
+                    AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
+                        processWindowContent()
+                    }
+                }
+            } else {
+                when (it.eventType) {
+                    AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+                        processWindowContent()
+                    }
                 }
             }
         }
