@@ -10,6 +10,7 @@ import com.webanion.androidgmutils.usagestats.AGUUsageStatsModule
 import com.webanion.androidgmutils.accessibility.AGUAccessibilityListenerModule
 import com.webanion.androidgmutils.screenrecording.ScreenRecordingListenerModule
 import com.webanion.androidgmutils.filemanager.FileManagerListenerModule
+import com.webanion.androidgmutils.bgtimer.BGTimerListenerModule
 
 
 class AndroidGmUtilsPackage : ReactPackage {
@@ -21,7 +22,8 @@ class AndroidGmUtilsPackage : ReactPackage {
             AGUUsageStatsModule(reactContext),
             AGUAccessibilityListenerModule(reactContext),
             ScreenRecordingListenerModule(reactContext),
-            FileManagerListenerModule(reactContext)
+            FileManagerListenerModule(reactContext),
+            BGTimerListenerModule(reactContext)
         )
   }
 

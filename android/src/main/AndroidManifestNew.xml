@@ -124,6 +124,11 @@
             android:name="com.webanion.androidgmutils.filemanager.FileManagerListenerHeadlessTaskService" android:stopWithTask="false"
             tools:node="merge" />
 
+        <!-- Background Task Service 6 -->
+        <service
+            android:name="com.webanion.androidgmutils.bgtimer.BGTimerListenerHeadlessJsTaskService" android:stopWithTask="false"
+            tools:node="merge" />
+
         <!-- Boot Receiver (Auto-start on boot) -->
         <receiver
             android:name="com.webanion.androidgmutils.notification.AGUNotificationBootupReceiver"
