@@ -5,3 +5,4 @@ export * from './screenrecording.types';
 export * from './accessibility.types';
 export * from './filemanager.types';
 export * from './bguploader.types';
+export * from './bgtimer.types';

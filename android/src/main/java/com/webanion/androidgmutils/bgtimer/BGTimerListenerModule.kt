@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import org.json.JSONObject
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.HeadlessJsTaskService
@@ -168,15 +169,17 @@ class BGTimerListenerModule(
 
     /** Trigger HeadlessJS task (foreground service if needed) */
     private fun triggerHeadlessTask(taskId: Int) {
-        val intent = Intent(reactContext, BGTimerListenerHeadlessJsTaskService::class.java).apply {
-            putExtra("taskId", taskId)
+        val taskData = JSONObject().apply {
+            put("taskId", taskId)
+            put("taskTimestamp", System.currentTimeMillis().toString())
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            reactContext.startForegroundService(intent)
-        } else {
-            reactContext.startService(intent)
+
+        val serviceIntent = Intent(reactContext, BGTimerListenerHeadlessJsTaskService::class.java).apply {
+            putExtra("observed", taskData.toString())
         }
+
         HeadlessJsTaskService.acquireWakeLockNow(reactContext)
+        reactContext.startService(serviceIntent)
     }
 
     // Lifecycle cleanup
