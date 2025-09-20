@@ -1,7 +1,5 @@
-import { DeviceEventEmitter, NativeEventEmitter } from 'react-native';
+import { DeviceEventEmitter } from 'react-native';
 import { BGTimerListener } from '../native/AndroidGmUtils';
-
-const Emitter = new NativeEventEmitter(BGTimerListener);
 
 type CallbackEntry = {
   callback: (() => void) | (() => Promise<void>);
@@ -10,101 +8,97 @@ type CallbackEntry = {
 };
 
 class BackgroundTimer {
-  private uniqueId = 0;
   private callbacks: Record<number, CallbackEntry> = {};
-  private backgroundListener: any;
-  private backgroundTimer: number | null = null;
 
   constructor() {
-    Emitter.addListener('backgroundTimer.timeout', (id: number) => {
-      const entry = this.callbacks[id];
-      if (!entry) return;
+    // Listen for native timer events
+    DeviceEventEmitter.addListener(
+      'backgroundTimer.timeout',
+      async (id: number) => {
+        const entry = this.callbacks[id];
+        if (!entry) return;
 
-      const { callback, interval, timeout } = entry;
-      if (!interval) delete this.callbacks[id];
-      else BGTimerListener.setTimeout(id, timeout);
-      callback();
-    });
-  }
+        const { callback, interval, timeout } = entry;
 
-  start(delay = 0) {
-    return BGTimerListener.start(delay);
-  }
+        if (!interval) {
+          // One-shot timers auto-remove
+          delete this.callbacks[id];
+        } else {
+          // Reschedule interval
+          BGTimerListener.setTimeout(timeout, id);
+        }
 
-  stop() {
-    return BGTimerListener.stop();
-  }
+        await callback(); // Run JS callback
 
-  runBackgroundTimer(callback: () => void, delay: number) {
-    this.start(0);
-    const EventEmitter = DeviceEventEmitter;
-    this.backgroundListener = EventEmitter.addListener(
-      'backgroundTimer',
-      () => {
-        this.backgroundListener.remove();
-        this.backgroundClockMethod(callback, delay);
+        // If async interval, mark finished
+        if (interval && callback.constructor.name === 'AsyncFunction') {
+          BGTimerListener.markIntervalFinished(id);
+        }
       }
     );
   }
 
-  async runBackgroundTimerAsync(
-    callback: () => Promise<void>,
-    interval: number
-  ) {
-    // Start native async interval
-    const id = await BGTimerListener.setIntervalAsync(interval);
+  /** Start a one-shot timer (returns native ID) */
+  async start(delay: number = 0, callback?: () => void): Promise<number> {
+    const id = await BGTimerListener.start(delay, 0);
+    if (callback) {
+      this.callbacks[id] = { callback, interval: false, timeout: delay };
+    }
+    return id;
+  }
 
-    // Save callback as CallbackEntry
+  /** Stop all timers */
+  stop() {
+    return BGTimerListener.stop();
+  }
+
+  /** Internal: sync interval */
+  async runSyncInterval(
+    callback: () => void,
+    timeout: number
+  ): Promise<number> {
+    const id = await BGTimerListener.setInterval(timeout, 0);
+    this.callbacks[id] = { callback, interval: true, timeout };
+    return id;
+  }
+
+  /** Internal: async interval */
+  async runAsyncInterval(
+    callback: () => Promise<void>,
+    timeout: number
+  ): Promise<number> {
+    const id = await BGTimerListener.setIntervalAsync(timeout, 0);
     this.callbacks[id] = {
       callback: async () => {
-        await callback(); // run async task
-        BGTimerListener.markIntervalFinished(id); // notify native
+        await callback();
+        BGTimerListener.markIntervalFinished(id);
       },
       interval: true,
-      timeout: interval,
+      timeout,
     };
-
-    return id; // return id so you can clear later
-  }
-
-  private backgroundClockMethod(callback: () => void, delay: number) {
-    this.backgroundTimer = this.setTimeout(() => {
-      callback();
-      this.backgroundClockMethod(callback, delay);
-    }, delay);
-  }
-
-  stopBackgroundTimer() {
-    this.stop();
-    if (this.backgroundTimer) this.clearTimeout(this.backgroundTimer);
-    if (this.backgroundListener) {
-      this.backgroundListener.remove();
-      this.backgroundListener = null;
-    }
-  }
-
-  setTimeout(callback: () => void, timeout: number) {
-    this.uniqueId += 1;
-    const id = this.uniqueId;
-    this.callbacks[id] = { callback, interval: false, timeout };
-    BGTimerListener.setTimeout(id, timeout);
     return id;
+  }
+
+  /** One-shot timeout */
+  async setTimeout(callback: () => void, timeout: number): Promise<number> {
+    const id = await BGTimerListener.setTimeout(timeout, 0);
+    this.callbacks[id] = { callback, interval: false, timeout };
+    return id;
+  }
+
+  /** Clear any timer */
+  clearTimer(id: number) {
+    delete this.callbacks[id];
+    BGTimerListener.clearInterval(id);
+  }
+
+  /** Convenience aliases */
+  clearInterval(id: number) {
+    this.clearTimer(id);
   }
 
   clearTimeout(id: number) {
-    delete this.callbacks[id];
-  }
-
-  setInterval(callback: () => void, timeout: number) {
-    this.uniqueId += 1;
-    const id = this.uniqueId;
-    this.callbacks[id] = { callback, interval: true, timeout };
-    BGTimerListener.setInterval(id, timeout);
-    return id;
-  }
-
-  clearInterval(id: number) {
-    delete this.callbacks[id];
+    this.clearTimer(id);
   }
 }
 

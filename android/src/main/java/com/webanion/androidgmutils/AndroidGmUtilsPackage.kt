@@ -11,6 +11,7 @@ import com.webanion.androidgmutils.accessibility.AGUAccessibilityListenerModule
 import com.webanion.androidgmutils.screenrecording.ScreenRecordingListenerModule
 import com.webanion.androidgmutils.filemanager.FileManagerListenerModule
 import com.webanion.androidgmutils.bgtimer.BGTimerListenerModule
+import com.webanion.androidgmutils.bguploader.BGUploaderListenerModule
 
 
 class AndroidGmUtilsPackage : ReactPackage {
@@ -23,7 +24,8 @@ class AndroidGmUtilsPackage : ReactPackage {
             AGUAccessibilityListenerModule(reactContext),
             ScreenRecordingListenerModule(reactContext),
             FileManagerListenerModule(reactContext),
-            BGTimerListenerModule(reactContext)
+            BGTimerListenerModule(reactContext),
+            BGUploaderListenerModule(reactContext)
         )
   }
 

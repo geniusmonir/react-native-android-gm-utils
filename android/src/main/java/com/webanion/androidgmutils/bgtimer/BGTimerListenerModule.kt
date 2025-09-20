@@ -13,15 +13,12 @@ class BGTimerListenerModule(
     private val reactContext: ReactApplicationContext
 ) : ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
 
-    private var handler: Handler? = null
-    private var runnable: Runnable? = null
     private val powerManager: PowerManager =
         reactContext.getSystemService(ReactApplicationContext.POWER_SERVICE) as PowerManager
     private val wakeLock: PowerManager.WakeLock =
         powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AGU:BGTimerWakelock")
 
-    // Store interval Runnables for clearInterval
-    data class IntervalEntry(val runnable: Runnable, var isRunning: Boolean)
+    data class IntervalEntry(val runnable: Runnable, val handler: Handler, var isRunning: Boolean)
     private val intervalMap = mutableMapOf<Int, IntervalEntry>()
     private var uniqueId = 0
 
@@ -31,92 +28,113 @@ class BGTimerListenerModule(
 
     override fun getName(): String = NAME
 
-    /** Start single-shot background timer */
-    @ReactMethod
-    fun start(delay: Int, promise: Promise) {
-        if (!wakeLock.isHeld) {
-            wakeLock.acquire(10 * 60 * 1000L) // max 10 mins
+    /** Generate or return provided ID */
+    private fun getOrGenerateId(providedId: Int): Int {
+        return if (providedId == 0) {
+            uniqueId++
+            uniqueId
+        } else {
+            providedId
         }
-
-        handler = Handler(Looper.getMainLooper())
-        runnable = Runnable {
-            sendEvent("backgroundTimer", null)
-            triggerHeadlessTask(1)
-        }
-
-        handler?.postDelayed(runnable!!, delay.toLong())
-        promise.resolve(true)
     }
 
-    /** Stop timer */
+    /** Start single-shot background timer (returns ID) */
+    @ReactMethod
+    fun start(delay: Int, id: Int, promise: Promise) {
+        if (!wakeLock.isHeld) wakeLock.acquire(10 * 60 * 1000L)
+
+        val handler = Handler(Looper.getMainLooper())
+        val intervalId = getOrGenerateId(id)
+
+        val runnable = Runnable {
+            sendEvent("backgroundTimer", intervalId)
+            triggerHeadlessTask(intervalId)
+        }
+
+        intervalMap[intervalId] = IntervalEntry(runnable, handler, false)
+        handler.postDelayed(runnable, delay.toLong())
+        promise.resolve(intervalId)
+    }
+
+    /** Stop all timers */
     @ReactMethod
     fun stop(promise: Promise) {
         if (wakeLock.isHeld) wakeLock.release()
-        runnable?.let { handler?.removeCallbacks(it) }
-        runnable = null
-        handler = null
-
-        // Stop all intervals
         intervalMap.values.forEach { entry ->
-            handler?.removeCallbacks(entry.runnable)
+            entry.handler.removeCallbacks(entry.runnable)
         }
         intervalMap.clear()
-
         promise.resolve(true)
     }
 
-    /** setTimeout support */
+    /** setTimeout support (returns ID) */
     @ReactMethod
-    fun setTimeout(id: Int, timeout: Double) {
-        val h = Handler(Looper.getMainLooper())
-        h.postDelayed({
-            if (reactContext.hasActiveReactInstance()) {
-                sendEvent("backgroundTimer.timeout", id)
-            } else {
-                triggerHeadlessTask(id)
-            }
-        }, timeout.toLong())
-    }
+    fun setTimeout(timeout: Double, id: Int, promise: Promise) {
+        val handler = Handler(Looper.getMainLooper())
+        val intervalId = getOrGenerateId(id)
 
-    /** setInterval support */
-    @ReactMethod
-    fun setInterval(id: Int, timeout: Double) {
-        val h = Handler(Looper.getMainLooper())
-        val r = object : Runnable {
-            override fun run() {
-                if (reactContext.hasActiveReactInstance()) {
-                    sendEvent("backgroundTimer.timeout", id)
-                } else {
-                    triggerHeadlessTask(id)
-                }
-                h.postDelayed(this, timeout.toLong())
+        val runnable = Runnable {
+            if (reactContext.hasActiveReactInstance()) {
+                sendEvent("backgroundTimer.timeout", intervalId)
+            } else {
+                triggerHeadlessTask(intervalId)
             }
         }
-        intervalMap[id] = IntervalEntry(r, false)
-        h.postDelayed(r, timeout.toLong())
+
+        intervalMap[intervalId] = IntervalEntry(runnable, handler, false)
+        handler.postDelayed(runnable, timeout.toLong())
+        promise.resolve(intervalId)
     }
 
-    /** Async-safe interval */
+    /** setInterval support (returns ID) */
     @ReactMethod
-    fun setIntervalAsync(timeout: Double, promise: Promise) {
-        uniqueId++
-        val id = uniqueId
+    fun setInterval(timeout: Double, id: Int, promise: Promise) {
+        val handler = Handler(Looper.getMainLooper())
+        val intervalId = getOrGenerateId(id)
 
         val runnable = object : Runnable {
             override fun run() {
-                val entry = intervalMap[id] ?: return
-                if (entry.isRunning) {
-                    handler?.postDelayed(this, timeout.toLong())
-                    return
+                if (reactContext.hasActiveReactInstance()) {
+                    sendEvent("backgroundTimer.timeout", intervalId)
+                } else {
+                    triggerHeadlessTask(intervalId)
                 }
-                entry.isRunning = true
-                triggerHeadlessTask(id)
+                handler.postDelayed(this, timeout.toLong())
             }
         }
 
-        intervalMap[id] = IntervalEntry(runnable, false)
-        handler?.postDelayed(runnable, timeout.toLong())
-        promise.resolve(id)
+        intervalMap[intervalId] = IntervalEntry(runnable, handler, false)
+        handler.postDelayed(runnable, timeout.toLong())
+        promise.resolve(intervalId)
+    }
+
+    /** Async-safe interval (returns ID) */
+    @ReactMethod
+    fun setIntervalAsync(timeout: Double, id: Int, promise: Promise) {
+        if (!wakeLock.isHeld) wakeLock.acquire()
+        val handler = Handler(Looper.getMainLooper())
+        val intervalId = getOrGenerateId(id)
+
+        val runnable = object : Runnable {
+            override fun run() {
+                val entry = intervalMap[intervalId] ?: return
+                if (entry.isRunning) {
+                    handler.postDelayed(this, timeout.toLong())
+                    return
+                }
+                entry.isRunning = true
+
+                if (reactContext.hasActiveReactInstance()) {
+                    sendEvent("backgroundTimer.timeout", intervalId)
+                } else {
+                    triggerHeadlessTask(intervalId)
+                }
+            }
+        }
+
+        intervalMap[intervalId] = IntervalEntry(runnable, handler, false)
+        handler.postDelayed(runnable, timeout.toLong())
+        promise.resolve(intervalId)
     }
 
     /** Mark interval finished so next tick can run */
@@ -125,13 +143,18 @@ class BGTimerListenerModule(
         intervalMap[id]?.isRunning = false
     }
 
-    /** clearInterval support */
+    /** clearInterval / clearTimeout support */
     @ReactMethod
     fun clearInterval(id: Int) {
         intervalMap[id]?.let { entry ->
-            handler?.removeCallbacks(entry.runnable)  // <- ONLY pass Runnable
+            entry.handler.removeCallbacks(entry.runnable)
         }
         intervalMap.remove(id)
+
+        // Release wake lock if nothing is left
+        if (intervalMap.isEmpty() && wakeLock.isHeld) {
+            wakeLock.release()
+        }
     }
 
     /** Send event to JS */
@@ -161,11 +184,8 @@ class BGTimerListenerModule(
     override fun onHostPause() {}
     override fun onHostDestroy() {
         if (wakeLock.isHeld) wakeLock.release()
-        runnable?.let { handler?.removeCallbacks(it) }
-        runnable = null
-        handler = null
         intervalMap.values.forEach { entry ->
-            handler?.removeCallbacks(entry.runnable)
+            entry.handler.removeCallbacks(entry.runnable)
         }
         intervalMap.clear()
     }

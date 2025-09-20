@@ -6,3 +6,4 @@ export * from './aguAccessibility';
 export * from './screenRecording';
 export * from './fileManager';
 export * from './bgtimer';
+export * from './bguploader';

@@ -98,3 +98,14 @@ export const BGTimerListener = NativeModules.BGTimerListenerModule
         },
       }
     );
+
+export const BGUploaderListener = NativeModules.BGUploaderListenerModule
+  ? NativeModules.BGUploaderListenerModule
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
