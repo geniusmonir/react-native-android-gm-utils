@@ -383,6 +383,10 @@ export function setAccessibilityStorageDuration(minutes: number): void {
   return AGUAccessibilityListener.setAccessibilityStorageDuration(minutes);
 }
 
+export function forceReconnectAccessibilityService(): Promise<boolean> {
+  return AGUAccessibilityListener.forceReconnectAccessibilityService();
+}
+
 export function setupScreenRecording(options: SRSetupOptions): Promise<void> {
   return ScreenRecordingListener.setup(options);
 }

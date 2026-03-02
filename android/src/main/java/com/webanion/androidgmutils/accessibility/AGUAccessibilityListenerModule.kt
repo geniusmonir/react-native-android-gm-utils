@@ -65,6 +65,16 @@ class AGUAccessibilityListenerModule(reactContext: ReactApplicationContext) : Re
         AGUAccessibilityListener.setAccessibilityStorageDuration(durationMs) // Minutes
     }
 
+    @ReactMethod
+    fun forceReconnectAccessibilityService(promise: Promise) {
+        try {
+            AGUAccessibilityListener.forceReconnect()
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.reject("ERROR", "Failed to force reconnect accessibility service", e)
+        }
+    }
+
     companion object {
       const val NAME = "AGUAccessibilityListenerModule"
     }

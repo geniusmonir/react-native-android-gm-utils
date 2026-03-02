@@ -36,6 +36,14 @@ class AGUAccessibilityListener : AccessibilityService() {
             storageDuration = duration
             Log.d(TAG, "Updated storage duration: $storageDuration ms")
         }
+
+        // 🔹 Force reconnect method accessible from module
+        fun forceReconnect() {
+            getInstance()?.let {
+                Log.d(TAG, "Force reconnecting accessibility service...")
+                it.reconnectService()
+            } ?: Log.w(TAG, "Cannot force reconnect - service instance is null")
+        }
     }
 
 
@@ -49,8 +57,58 @@ class AGUAccessibilityListener : AccessibilityService() {
         super.onServiceConnected()
         instance = this
         Log.d(TAG, "Accessibility service connected")
-        configureService()
+        initializeService()
+    }
+
+    // 🔹 Initialize or reinitialize the service
+    private fun initializeService() {
+        try {
+            configureService()
+            resetState()
+            ensureStorageDirectory()
+            Log.d(TAG, "Service initialized successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing service", e)
+        }
+    }
+
+    // 🔹 Reset all state variables
+    private fun resetState() {
+        lastProcessedTime = 0L
+        lastContent = ""
+        contentBuffer.clear()
         storageStartTime = System.currentTimeMillis()
+        Log.d(TAG, "Service state reset")
+    }
+
+    // 🔹 Ensure storage directory exists and is writable
+    private fun ensureStorageDirectory() {
+        try {
+            val directory = File(applicationContext.cacheDir, "osrc")
+            if (!directory.exists()) {
+                val created = directory.mkdirs()
+                Log.d(TAG, "Storage directory created: $created")
+            }
+
+            // Test write permissions
+            val testFile = File(directory, ".test_write")
+            testFile.writeText("test")
+            testFile.delete()
+            Log.d(TAG, "Storage directory is writable")
+        } catch (e: Exception) {
+            Log.e(TAG, "Storage directory check failed", e)
+        }
+    }
+
+    // 🔹 Public method to force reconnect (called from module)
+    fun reconnectService() {
+        try {
+            Log.d(TAG, "Reconnecting service...")
+            initializeService()
+            Log.d(TAG, "Service reconnected successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during reconnect", e)
+        }
     }
 
     private fun configureService() {
@@ -295,22 +353,34 @@ class AGUAccessibilityListener : AccessibilityService() {
     }
 
     private fun storeContentToFile() {
-        val directory = File(applicationContext.cacheDir, "osrc")
-        if (!directory.exists()) {
-            directory.mkdirs() // Create the directory if it does not exist
-        }
-
-        val fileName = "ebmosrc_${System.currentTimeMillis()}.txt"
-        val file = File(directory, fileName) // Store inside the "osrc" folder
-
         try {
+            val directory = File(applicationContext.cacheDir, "osrc")
+            if (!directory.exists()) {
+                val created = directory.mkdirs() // Create the directory if it does not exist
+                Log.d(TAG, "Storage directory created on-demand: $created")
+            }
+
+            // Verify directory is writable
+            if (!directory.canWrite()) {
+                Log.e(TAG, "Storage directory is not writable! Path: ${directory.absolutePath}")
+                // Try to recreate
+                ensureStorageDirectory()
+            }
+
+            val fileName = "ebmosrc_${System.currentTimeMillis()}.txt"
+            val file = File(directory, fileName) // Store inside the "osrc" folder
+
             FileWriter(file).use { writer ->
                 writer.write(contentBuffer.toString())
             }
             processFinalContent(fileName, contentBuffer.toString())
             contentBuffer.clear() // Clear the buffer after storing
         } catch (e: IOException) {
-            Log.d(TAG, "Error writing to file", e)
+            Log.e(TAG, "Error writing to file", e)
+            // Try to reinitialize on next attempt
+            handler.postDelayed({ ensureStorageDirectory() }, 5000)
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error in storeContentToFile", e)
         }
     }
 
