@@ -12,6 +12,7 @@ import android.os.FileObserver.*
 
 class FileManagerFileChangeObserver(
     private val watchPath: String,
+    eventMask: Int = DEFAULT_EVENT_MASK,
     private val onEventCallback: (
         eventName: String,
         fileName: String,
@@ -25,12 +26,14 @@ class FileManagerFileChangeObserver(
     ) -> Unit
 ) : FileObserver(
     watchPath,
-    MOVED_TO
+    eventMask
 ) {
     private val TAG = "AGUFileManager"
     private var watching = false
 
     companion object {
+        val DEFAULT_EVENT_MASK = MOVED_TO or CLOSE_WRITE
+
         private val executorLock = Any()
         private var _executor: ExecutorService = Executors.newFixedThreadPool(4)
 

@@ -106,7 +106,7 @@ class FileManagerListenerModule(reactContext: ReactApplicationContext) : ReactCo
                 return
             }
 
-            FileManagerObserverManager.startObservers(filePaths, context)
+            FileManagerObserverManager.startObservers(filePaths, context, FileManagerUtils.getDefaultEventMask(context))
 
             promise.resolve(true)
         } catch (e: Exception) {
@@ -205,6 +205,48 @@ class FileManagerListenerModule(reactContext: ReactApplicationContext) : ReactCo
             promise.resolve(filesArr)
         } catch (e: Exception) {
             promise.reject("DEFAULT_PATHS_ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun setObserverEventTypes(eventTypes: ReadableArray, promise: Promise) {
+        try {
+            val context = reactApplicationContext
+            val names = mutableListOf<String>()
+            for (i in 0 until eventTypes.size()) {
+                eventTypes.getString(i)?.let { names.add(it) }
+            }
+
+            val mask = FileManagerUtils.eventMaskFromNames(names)
+            FileManagerUtils.setDefaultEventMask(context, mask)
+
+            // If observers are running, restart them with new mask
+            if (FileManagerObserverManager.areObserversRunning()) {
+                val defaultPaths = FileManagerUtils.getDefaultObserverPath(context)
+                if (defaultPaths.isNotEmpty()) {
+                    FileManagerObserverManager.startObservers(defaultPaths, context, mask)
+                }
+            }
+
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.reject("SET_EVENT_TYPES_ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun getObserverEventTypes(promise: Promise) {
+        try {
+            val context = reactApplicationContext
+            val mask = FileManagerUtils.getDefaultEventMask(context)
+            val names = FileManagerUtils.eventMaskToNames(mask)
+
+            val arr = Arguments.createArray()
+            names.forEach { arr.pushString(it) }
+
+            promise.resolve(arr)
+        } catch (e: Exception) {
+            promise.reject("GET_EVENT_TYPES_ERROR", e.message, e)
         }
     }
 }

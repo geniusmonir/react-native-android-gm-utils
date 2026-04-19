@@ -21,6 +21,7 @@ import java.lang.reflect.Method
 import java.util.Collections
 import java.util.concurrent.FutureTask
 import android.webkit.MimeTypeMap
+import android.os.FileObserver
 
 data class EventData(
     val eventName: String,
@@ -45,9 +46,10 @@ object FileManagerObserverManager {
     private var processingEvents = false
     private val handler = Handler(Looper.getMainLooper())
     private const val BATCH_DELAY_MS = 2000L // Process events every 2 seconds
+    private const val FILE_STABILITY_MS = 1500L // File must be unchanged for this long to be considered stable
 
-    fun startObservers(paths: List<File>, context: Context) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "startObservers Called")
+    fun startObservers(paths: List<File>, context: Context, eventMask: Int = FileManagerFileChangeObserver.DEFAULT_EVENT_MASK) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "startObservers Called with eventMask: $eventMask")
 
         if (!hasStoragePermission(context)) {
             if (BuildConfig.DEBUG) Log.d(TAG, "Cannot start observers: Storage permission not granted")
@@ -64,7 +66,7 @@ object FileManagerObserverManager {
 
         paths.forEach { path ->
             try {
-                val observer = FileManagerFileChangeObserver(path.absolutePath) { eventName, fileName, filePath, fileUri, isDir, size, modification, fileType, extname ->
+                val observer = FileManagerFileChangeObserver(path.absolutePath, eventMask) { eventName, fileName, filePath, fileUri, isDir, size, modification, fileType, extname ->
                     queueEvent(context, eventName, fileName, filePath, fileUri, isDir, size, modification, fileType, extname)
                 }
 
@@ -319,6 +321,8 @@ object FileManagerObserverManager {
         val eventData = EventData(eventName, fileName, filePath, fileUri, isDir, size, modification, fileType, extname)
 
         synchronized(eventQueue) {
+            // Deduplicate: remove any existing event for the same filePath, keep only the latest
+            eventQueue.removeAll { it.filePath == filePath }
             eventQueue.add(eventData)
 
             if (!processingEvents) {
@@ -334,6 +338,7 @@ object FileManagerObserverManager {
 
     private fun processQueuedEvents(context: Context) {
         val eventsToProcess: List<EventData>
+        val unstableEvents = mutableListOf<EventData>()
 
         synchronized(eventQueue) {
             eventsToProcess = eventQueue.toList()
@@ -347,10 +352,59 @@ object FileManagerObserverManager {
 
         if (BuildConfig.DEBUG) Log.d(TAG, "Processing ${eventsToProcess.size} batched events")
 
+        // Deduplicate by filePath (keep latest) and check stability
+        val now = System.currentTimeMillis()
+        val deduplicated = LinkedHashMap<String, EventData>()
+        eventsToProcess.forEach { event ->
+            deduplicated[event.filePath] = event
+        }
+
+        val stableEvents = mutableListOf<EventData>()
+        deduplicated.values.forEach { event ->
+            val file = File(event.filePath)
+            if (!file.exists()) {
+                // File was deleted (temp file) — skip
+                if (BuildConfig.DEBUG) Log.d(TAG, "Skipping deleted file: ${event.filePath}")
+                return@forEach
+            }
+
+            val timeSinceModified = now - file.lastModified()
+            if (timeSinceModified < FILE_STABILITY_MS) {
+                // File is still being written — re-queue for next batch
+                if (BuildConfig.DEBUG) Log.d(TAG, "Re-queuing unstable file: ${event.filePath} (modified ${timeSinceModified}ms ago)")
+                unstableEvents.add(event)
+            } else {
+                stableEvents.add(event)
+            }
+        }
+
+        // Re-queue unstable events
+        if (unstableEvents.isNotEmpty()) {
+            synchronized(eventQueue) {
+                unstableEvents.forEach { event ->
+                    eventQueue.removeAll { it.filePath == event.filePath }
+                    eventQueue.add(event)
+                }
+            }
+        }
+
+        if (stableEvents.isEmpty()) {
+            // No stable events yet, schedule another check
+            processingEvents = if (unstableEvents.isNotEmpty()) {
+                handler.postDelayed({ processQueuedEvents(context) }, BATCH_DELAY_MS)
+                true
+            } else {
+                false
+            }
+            return
+        }
+
+        if (BuildConfig.DEBUG) Log.d(TAG, "Emitting ${stableEvents.size} stable events (${unstableEvents.size} re-queued)")
+
         try {
             // Convert events to JSON
             val eventsArray = JSONArray()
-            eventsToProcess.forEach { event ->
+            stableEvents.forEach { event ->
                 val eventObj = JSONObject().apply {
                     put("eventName", event.eventName)
                     put("fileName", event.fileName)

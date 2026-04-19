@@ -1,3 +1,17 @@
+export type FileObserverEventType =
+  | 'ACCESS'
+  | 'MODIFY'
+  | 'ATTRIB'
+  | 'CLOSE_WRITE'
+  | 'CLOSE_NOWRITE'
+  | 'OPEN'
+  | 'MOVED_FROM'
+  | 'MOVED_TO'
+  | 'CREATE'
+  | 'DELETE'
+  | 'DELETE_SELF'
+  | 'MOVE_SELF';
+
 export interface AGUFolder {
   name: string;
   files: string[];
@@ -60,4 +74,6 @@ export interface FileManagerListenerModule {
   setAGUSPValue(key: string, value: string): Promise<void>;
   getAGUSPValue(key: string): Promise<string | null>;
   getDefaultObserverPaths(): Promise<string[]>;
+  setObserverEventTypes(eventTypes: FileObserverEventType[]): Promise<void>;
+  getObserverEventTypes(): Promise<FileObserverEventType[]>;
 }

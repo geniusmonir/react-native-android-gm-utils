@@ -3,6 +3,7 @@ import { FileManagerListerner } from '../native/AndroidGmUtils';
 import type {
   AGUFolderStorage,
   AGUFileStorage,
+  FileObserverEventType,
 } from '../types/filemanager.types';
 
 export async function hasAGUFileManagerPermission(): Promise<boolean> {
@@ -95,5 +96,27 @@ export async function setAGUSPValue(key: string, value: string): Promise<void> {
     return val;
   } catch (err) {
     console.log(err);
+  }
+}
+
+export async function setAGUFMObserverEventTypes(
+  eventTypes: FileObserverEventType[]
+): Promise<void> {
+  try {
+    await FileManagerListerner.setObserverEventTypes(eventTypes);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+export async function getAGUFMObserverEventTypes(): Promise<
+  FileObserverEventType[]
+> {
+  try {
+    const types = await FileManagerListerner.getObserverEventTypes();
+    return types;
+  } catch (err) {
+    console.log(err);
+    return [];
   }
 }

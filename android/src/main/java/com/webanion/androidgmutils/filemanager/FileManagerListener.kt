@@ -36,10 +36,11 @@ class FileManagerListener : Service() {
 
         // Start observer logic
         val defaultPaths = FileManagerUtils.getDefaultObserverPath(applicationContext)
+        val eventMask = FileManagerUtils.getDefaultEventMask(applicationContext)
         val isRunning = FileManagerObserverManager.areObserversRunning()
         if (!defaultPaths.isNullOrEmpty() && !isRunning) {
-            FileManagerObserverManager.startObservers(defaultPaths, applicationContext)
-            if (BuildConfig.DEBUG) Log.d(TAG, "Observers started on ${defaultPaths.size} paths.")
+            FileManagerObserverManager.startObservers(defaultPaths, applicationContext, eventMask)
+            if (BuildConfig.DEBUG) Log.d(TAG, "Observers started on ${defaultPaths.size} paths with eventMask: $eventMask")
         } else {
             if (isRunning) {
                 if (BuildConfig.DEBUG) Log.d(TAG, "Observers are already running.")

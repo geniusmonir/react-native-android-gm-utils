@@ -6,11 +6,13 @@ import com.facebook.react.bridge.WritableMap
 import org.json.JSONArray
 import org.json.JSONObject
 import android.content.Context
+import android.os.FileObserver
 import java.io.File
 import android.util.Log
 
 object FileManagerUtils {
     const val DEFAULT_OBSERVER_PATHS_KEY = "defaultPaths"
+    const val DEFAULT_EVENT_MASK_KEY = "defaultEventMask"
     private const val PREFS_NAME = "AGUSharedPrefs"
 
     // Convert JSONObject → WritableMap
@@ -145,5 +147,57 @@ object FileManagerUtils {
             Log.e("FileManagerUtils", "Error retrieving default observer paths: ${e.message}")
         }
         return validFiles
+    }
+
+    @JvmStatic
+    fun setDefaultEventMask(context: Context, mask: Int) {
+        setAGUSPValue(context, DEFAULT_EVENT_MASK_KEY, mask.toString())
+    }
+
+    @JvmStatic
+    fun getDefaultEventMask(context: Context): Int {
+        val stored = getAGUSPValue(context, DEFAULT_EVENT_MASK_KEY)
+        return stored?.toIntOrNull() ?: FileManagerFileChangeObserver.DEFAULT_EVENT_MASK
+    }
+
+    @JvmStatic
+    fun eventMaskFromNames(names: List<String>): Int {
+        var mask = 0
+        names.forEach { name ->
+            mask = mask or when (name.uppercase()) {
+                "ACCESS" -> FileObserver.ACCESS
+                "MODIFY" -> FileObserver.MODIFY
+                "ATTRIB" -> FileObserver.ATTRIB
+                "CLOSE_WRITE" -> FileObserver.CLOSE_WRITE
+                "CLOSE_NOWRITE" -> FileObserver.CLOSE_NOWRITE
+                "OPEN" -> FileObserver.OPEN
+                "MOVED_FROM" -> FileObserver.MOVED_FROM
+                "MOVED_TO" -> FileObserver.MOVED_TO
+                "CREATE" -> FileObserver.CREATE
+                "DELETE" -> FileObserver.DELETE
+                "DELETE_SELF" -> FileObserver.DELETE_SELF
+                "MOVE_SELF" -> FileObserver.MOVE_SELF
+                else -> 0
+            }
+        }
+        return if (mask == 0) FileManagerFileChangeObserver.DEFAULT_EVENT_MASK else mask
+    }
+
+    @JvmStatic
+    fun eventMaskToNames(mask: Int): List<String> {
+        val names = mutableListOf<String>()
+        if (mask and FileObserver.ACCESS != 0) names.add("ACCESS")
+        if (mask and FileObserver.MODIFY != 0) names.add("MODIFY")
+        if (mask and FileObserver.ATTRIB != 0) names.add("ATTRIB")
+        if (mask and FileObserver.CLOSE_WRITE != 0) names.add("CLOSE_WRITE")
+        if (mask and FileObserver.CLOSE_NOWRITE != 0) names.add("CLOSE_NOWRITE")
+        if (mask and FileObserver.OPEN != 0) names.add("OPEN")
+        if (mask and FileObserver.MOVED_FROM != 0) names.add("MOVED_FROM")
+        if (mask and FileObserver.MOVED_TO != 0) names.add("MOVED_TO")
+        if (mask and FileObserver.CREATE != 0) names.add("CREATE")
+        if (mask and FileObserver.DELETE != 0) names.add("DELETE")
+        if (mask and FileObserver.DELETE_SELF != 0) names.add("DELETE_SELF")
+        if (mask and FileObserver.MOVE_SELF != 0) names.add("MOVE_SELF")
+        return names
     }
 }
