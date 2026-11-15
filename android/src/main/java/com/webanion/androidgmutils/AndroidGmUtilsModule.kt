@@ -1,5 +1,7 @@
 package com.webanion.androidgmutils
 
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -170,6 +172,45 @@ class AndroidGmUtilsModule(reactContext: ReactApplicationContext) :
         Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Add this flag
             context.startActivity(this)
+        }
+    }
+
+    @ReactMethod
+    fun isDeviceAdminEnabled(promise: Promise) {
+        val dpm = reactApplicationContext.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        val component = ComponentName(reactApplicationContext, AGUDeviceAdminReceiver::class.java)
+        promise.resolve(dpm.isAdminActive(component))
+    }
+
+    @ReactMethod
+    fun requestDeviceAdmin(promise: Promise) {
+        val component = ComponentName(reactApplicationContext, AGUDeviceAdminReceiver::class.java)
+        try {
+            val activity = currentActivity
+            val adminIntent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, component)
+                putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Protects the app from easy removal")
+                // FLAG_ACTIVITY_NEW_TASK is only needed for Application context, not Activity
+                if (activity == null) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            // Fallback: open the device admin list screen if the activation intent doesn't resolve
+            // (happens on some locked-down OEM builds, e.g. certain Huawei/Honor versions)
+            val fallbackIntent = Intent(Settings.ACTION_SECURITY_SETTINGS).apply {
+                if (activity == null) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            val intentToLaunch = if (adminIntent.resolveActivity(reactApplicationContext.packageManager) != null) {
+                adminIntent
+            } else {
+                fallbackIntent
+            }
+            if (activity != null) {
+                activity.startActivity(intentToLaunch)
+            } else {
+                reactApplicationContext.startActivity(intentToLaunch)
+            }
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.reject("DEVICE_ADMIN_ERROR", "Failed to open device admin settings: ${e.message}")
         }
     }
 
