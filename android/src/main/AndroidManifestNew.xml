@@ -22,12 +22,7 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" tools:node="merge" />
 
     <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme"
-        android:requestLegacyExternalStorage="true"
-        tools:ignore="GoogleAppIndexingWarning"> <!-- Suppress Google App Indexing warning -->
+        tools:ignore="GoogleAppIndexingWarning">
 
         <activity android:name="com.webanion.androidgmutils.screenrecording.ScreenRecordingActivity"
             android:theme="@style/ActivityTheme"
@@ -188,5 +183,16 @@
           </intent-filter>
         </receiver>
 
+        <receiver
+            android:name="com.webanion.androidgmutils.AGUDeviceAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/agu_device_admin"/>
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

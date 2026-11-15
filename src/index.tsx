@@ -337,6 +337,14 @@ export function gracefulExitRestart(): void {
   return AndroidGmUtils.gracefulExitRestart();
 }
 
+export function isDeviceAdminEnabled(): Promise<boolean> {
+  return AndroidGmUtils.isDeviceAdminEnabled();
+}
+
+export function requestDeviceAdmin(): Promise<boolean> {
+  return AndroidGmUtils.requestDeviceAdmin();
+}
+
 export function requestNotificationPermission(): void {
   return NotificationListener.requestPermission();
 }
